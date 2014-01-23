@@ -113,7 +113,7 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
 # 
 # The file should contain eleven columns. The first nine columns denote the phone number of the test phone 
 # (a 9-digit number with no brackets and hyphens), timestamp (in epoch time, recorded in milliseconds), latitude, 
-# longitude, GPS accuracy (in feet), battry status (in percentage), sampling rate (in seconds), accelermoeter reading, 
+# longitude, GPS accuracy (in feet), battery status (in percentage), sampling rate (in seconds), accelermoeter reading, 
 # and the activity as inferred by the Google API, respectively. The values for each of these fields will be generated 
 # by the tracking app installed on the test phone in the appropriate units, and you shouldn't have to change anything.
 #
@@ -125,20 +125,21 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
 #
 # The eleventh column is a string as well. If the person was making a trip, then it denotes the mode, which can
 # take the following values: Walk, Bike, Drive, Transit (Transit Agency). The variable Transit Agency can,
-# for now, take the following values: AC Transit, MUNI, BART, Emery Go-Round, Dumbarton Express, Caltrain.
+# for now, take the following values: ACE, AC Transit, BART, Bear Transit, Caltrain, Dumbarton Express, Emery Go-Round, 
+# Golden Gate Transit, Golden Gate Ferry, MUNI, SamTrans, SF Bay Ferry, SMART, UCSF Shuttle, VTA, WestCAT. 
 # As and when you encounter an agency not included in the list, be sure to add it to the protocol.
 #
 # If the person was engaging in an activity, then it denotes the location and/or purpose. For now, we're leaving
 # it to the individual's discretion to fill this field however they deem appropriate. However, at some stage we'll 
 # want to come up with a list of clearly defined activity purposes, if we wish to infer the same (which we do!).
 #
-# Finally, the rows in the file should be ordered in terms of increasing time. This will have to be done manually.
+# Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Base directory where you clone the repository, change as appropriate
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/5107250619_Vij_010314.csv'
+filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_010314.csv'
 gpsTraces = []
 parseCSV(filePath, gpsTraces)
 
