@@ -42,7 +42,7 @@
         <translation lang="eng">
 
           <text id="/data/intro1:label">
-            <value>Welcome to Travel and Activity Diary! Use this app to record any trip that you make and/or any activity that you engage in. If you use multiple travel modes to make a trip, record each leg of the mode chain as a separate trip. This applies to transit transfers as well (both inter-agency and intra-agency).</value>
+            <value>Welcome to Travel and Activity Diary! Use this app to record any trip that you make and/or any activity that you engage in. If you use multiple travel modes to make a trip, record each leg of the mode chain as a separate trip. This applies to transit transfers as well (both inter-agency and intra-agency). Any time spent waiting at a public transit stop for a bus or train to arrive must be reported as a separate activity.</value>
           </text>
 
           <text id="/data/userID:label">
@@ -229,6 +229,9 @@
             <value>Pick-up/drop-off passenger</value>
           </text>
           <text id="/data/activity/col13ActivityPurpose:option13">
+            <value>Waiting (for public transit, or a ride, etc.)</value>
+          </text>
+          <text id="/data/activity/col13ActivityPurpose:option14">
             <value>Other (please specify and inform us what's missed above)</value>
           </text>
 
@@ -245,7 +248,7 @@
           </text>
 
           <text id="/data/recordDateTime:label">
-            <value>Record date and time?</value>
+            <value>The survey automatically records the current date and time. Is this the right date and time for the trip or activity being reported? If you answer no, then you would be required to enter the date and time manually.</value>
           </text>
           <text id="/data/recordDateTime:option0">
             <value>Yes</value>
@@ -276,13 +279,13 @@
       
       <bind nodeset="/data/activity" relevant="selected(/data/col12TripActivity, 'Activity')"/>
       <bind nodeset="/data/activity/col13ActivityPurpose" type="select" required="true()"/>
-      <bind nodeset="/data/activity/col14OtherPurpose" type="string" required="true()" relevant="selected(/data/activity/col13ActivityPurpose, '22')"/>
+      <bind nodeset="/data/activity/col14OtherPurpose" type="string" required="true()" relevant="selected(/data/activity/col13ActivityPurpose, 'Other')"/>
       <bind nodeset="/data/activity/col15ExactPurpose" type="string"/>
       
       <bind nodeset="/data/gpsTrace" type="geopoint" required="true()"/>
 
       <bind nodeset="/data/recordDateTime" type="select1" required="true()"/>
-      <bind nodeset="/data/startTimeManual" type="dateTime" required="true()" relevant="selected(/data/recordDateTime, 'Yes')"/>
+      <bind nodeset="/data/startTimeManual" type="dateTime" required="true()" relevant="selected(/data/recordDateTime, 'No')"/>
       
     </model>
   </h:head>
@@ -526,6 +529,10 @@
         </item>
         <item>
           <label ref="jr:itext('/data/activity/col13ActivityPurpose:option13')"/>
+          <value>Waiting</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/data/activity/col13ActivityPurpose:option14')"/>
           <value>Other</value>
         </item>
       </select>
