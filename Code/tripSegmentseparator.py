@@ -248,7 +248,7 @@ def firstSegmentation(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minConsecuti
 filePath = '/Users/carolinelefloch/Documents/GSR/Modeinference/'
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/5107250619_Vij_010314.csv'
+filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_010314.csv'
 gpsTraces = []
 parseCSV(filePath, gpsTraces)
 
