@@ -74,7 +74,7 @@ def epochTime(date, gmtConversion):
     return startTime, endTime
 
 
-# Returns the epoch Time in milliseconds for a given day and time. Input is a string in 
+# Returns the epoch Time in milliseconds for a given day and time in UTC. Input is a string in 
 # the format 'Thu Jan 23 18:18:00 UTC 2014' 
 
 def epochGroundTime(dateTime):
@@ -224,7 +224,7 @@ def mergeData(gpsData, groundData):
 # saved to the local hard drive.
 
 # Personal details, change as appropriate
-testerName = 'Sreeta'
+testerName = 'Sreeta'    # Should be the same as that listed in the ODK form
 phoneNum = '5107250786'  # 10-digit number with no brackets, hyphens or spaces
 date = '01242014'        # MMDDYYYY format of day for which you wish to extract data
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
