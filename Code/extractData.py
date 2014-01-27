@@ -224,9 +224,9 @@ def mergeData(gpsData, groundData):
 # saved to the local hard drive.
 
 # Personal details, change as appropriate
-testerName = 'Sreeta'    # Should be the same as that listed in the ODK form
-phoneNum = '5107250786'  # 10-digit number with no brackets, hyphens or spaces
-date = '01242014'        # MMDDYYYY format of day for which you wish to extract data
+testerName = 'Vij'       # Should be the same as that listed in the ODK form
+phoneNum = '5107250744'  # 10-digit number with no brackets, hyphens or spaces
+date = '01232014'        # MMDDYYYY format of day for which you wish to extract data
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 
 # Base directory where you clone the repository, change as appropriate

@@ -245,7 +245,7 @@ def firstSegmentation(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minConsecuti
 # Finally, the rows in the file should be ordered in terms of increasing time. This will have to be done manually.
 
 # Base directory where you clone the repository, change as appropriate
-filePath = '/Users/carolinelefloch/Documents/GSR/Modeinference/'
+filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
 filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_010314.csv'
