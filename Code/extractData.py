@@ -121,15 +121,7 @@ def epochGroundTime(dateTime):
 
 def getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
 
-    url = 'http://1.' + phoneNum + 'gp.appspot.com/gaeandroid?query=1'
-    data = urllib2.urlopen(url)
-    
-    localFile = open(gpsFilePath, 'w')
-    localFile.write(data.read())
-    localFile.close()
-
     startTime, endTime = epochTime(date, gmtConversion)
-
     gpsData = []
     with open(gpsFilePath, 'rU') as csvfile:
         for row in csv.reader(csvfile, delimiter = '\t'):
@@ -139,7 +131,6 @@ def getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
             except:
                 pass            
     gpsData = sorted(gpsData, key = lambda x: int(x[1]))
-    os.remove(gpsFilePath)
     return gpsData
 
 
@@ -226,11 +217,14 @@ def mergeData(gpsData, groundData):
 # Personal details, change as appropriate
 testerName = 'Vij'       # Should be the same as that listed in the ODK form
 phoneNum = '5107250744'  # 10-digit number with no brackets, hyphens or spaces
-date = '01232014'        # MMDDYYYY format of day for which you wish to extract data
+date = '01272014'        # MMDDYYYY format of day for which you wish to extract data
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 
 # Base directory where you clone the repository, change as appropriate
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
+
+# Directory where you saved the file with GPS traces, change as appropriate
+gpsFilePath = filePath + 'Travel-Diary/Data/Google Play API/' + phoneNum + '.txt'
 
 # Directory where you've saved the ODK file with just the ground truth, change as appropriate
 groundFilePath = filePath + 'Travel-Diary/Data/Ground Truth/Travel_and_Activity_Diary_results.csv'       
@@ -238,14 +232,14 @@ groundFilePath = filePath + 'Travel-Diary/Data/Ground Truth/Travel_and_Activity_
 
 # DON'T CHANGE ANYTHING BELOW THIS!
 
-# Directory where you want to save the file with GPS traces and ground truth, no need to change this
-gpsFilePath = filePath + 'Travel-Diary/Data/Google Play API/' + phoneNum + '_' + testerName + '_' + date + '.txt'
+# Directory where the final data file will be saved, no need to change this
+dataFilePath = filePath + 'Travel-Diary/Data/Google Play API/' + phoneNum + '_' + testerName + '_' + date + '.txt'
 
-groundData = getGroundData(testerName, phoneNum, date, gmtConversion, groundFilePath)
 gpsData = getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath)
+groundData = getGroundData(testerName, phoneNum, date, gmtConversion, groundFilePath)
 data = mergeData(gpsData, groundData)
 
-with open(gpsFilePath, 'wb') as csvfile:
+with open(dataFilePath, 'wb') as csvfile:
     fileWriter = csv.writer(csvfile, delimiter = '\t')
     for row in data:
         fileWriter.writerow(row)

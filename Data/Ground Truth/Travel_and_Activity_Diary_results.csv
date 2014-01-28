@@ -1,34 +1,140 @@
-"startTimeAutomatic","phoneNumber","meta:instanceID","intro1","userID","col12TripActivity","trip:col13TripMode","trip:transit:col14TransitAgency","trip:transit:col15OtherTransitAgency","trip:col14OtherMode","activity:col13ActivityPurpose","activity:col14OtherPurpose","activity:col15ExactPurpose","gpsTrace:Latitude","gpsTrace:Longitude","gpsTrace:Altitude","gpsTrace:Accuracy","recordDateTime","startTimeManual"
-"Thu Jan 23 01:40:21 UTC 2014","5107250786","uuid:a0e0b7c9-abc1-488d-a46c-ba0cd90d63cf","null","Sreeta","Activity","null","null","null","null","Work School","null","McLaughlin Hall","37.8738906000","-122.2588510000","0E-10","27.4840000000","Yes","null"
-"Thu Jan 23 02:14:38 UTC 2014","5107250786","uuid:4ecb8be4-47d9-48a0-b4bd-7a286ab5415c","null","Sreeta","Trip","Walk","null","null","null","","null","null","37.8738351000","-122.2587597000","0E-10","36.0000000000","No","Thu Jan 23 02:18:00 UTC 2014"
-"Thu Jan 23 02:38:44 UTC 2014","5107250786","uuid:6592c853-f284-47d8-a65d-3fc238844e2c","null","Sreeta","Activity","null","null","null","null","Meals Social","null","Eureka restaurant","37.8700749000","-122.2689964000","0E-10","30.0000000000","Yes","null"
-"Thu Jan 23 05:09:20 UTC 2014","5107250786","uuid:a33e86e1-7dd8-4b3d-8d7d-271d5effef9a","null","Sreeta","Trip","Walk","null","null","null","","null","null","37.8700707000","-122.2690108000","0E-10","30.0000000000","Yes","null"
-"Thu Jan 23 05:26:33 UTC 2014","5107250786","uuid:01009a56-697b-4362-82cb-949dde53b0e6","null","Sreeta","Activity","null","null","null","null","Household_chores Sleep Relaxing","null","Home","37.8692601000","-122.2764919000","0E-10","26.3430000000","No","Thu Jan 23 05:25:00 UTC 2014"
-"Fri Jan 24 15:57:34 UTC 2014","5107250786","uuid:e26e1c13-8736-4796-9154-aed5f11ced4a","null","Sreeta","Trip","Walk","null","null","null","","null","null","37.8711740100","-122.2750567200","28.0000000000","13.0000000000","No","Fri Jan 24 15:56:00 UTC 2014"
-"Fri Jan 24 15:58:32 UTC 2014","5107250786","uuid:867969a9-6e54-4515-811f-f6512e48c34f","null","Sreeta","Activity","null","null","null","null","Work School Waiting","null","Grant and university","37.8712999000","-122.2747161000","0E-10","48.0000000000","No","Fri Jan 24 15:58:00 UTC 2014"
-"Fri Jan 24 15:59:57 UTC 2014","5107250786","uuid:72d21374-441d-4d2d-bef6-817de137e41c","null","Sreeta","Trip","Transit","AC_Transit","null","null","","null","null","37.8715488200","-122.2734058200","22.0000000000","23.0000000000","No","Fri Jan 24 15:58:00 UTC 2014"
-"Fri Jan 24 16:07:15 UTC 2014","5107250786","uuid:41ec238a-3375-48cc-93db-edcf1a01b2b7","null","Sreeta","Activity","null","null","null","null","Work School Other","Last mile","Euclid","37.8745610100","-122.2602167400","65.0000000000","19.0000000000","Yes","null"
-"Fri Jan 24 16:08:16 UTC 2014","5107250786","uuid:3716dfbe-f207-434a-b353-50ac61232dcd","null","Sreeta","Trip","Walk","null","null","null","","null","null","37.8746080000","-122.2600090400","79.0000000000","11.0000000000","Yes","null"
-"Fri Jan 24 16:11:30 UTC 2014","5107250786","uuid:b62f1cbc-4e96-4b0e-a068-eacd7dfbd8cf","null","Sreeta","Activity","null","null","null","null","Work School","null","Evans Hall","37.8735773000","-122.2581334000","0E-10","27.5800000000","Yes","null"
-"Thu Jan 23 01:23:29 UTC 2014","5107259365","uuid:f8b2cf9d-fc5e-4ce1-adee-99c1314b2e42","null","Andrew","Activity","null","null","null","null","School","null","Mclaughlin","37.8738690000","-122.2588586000","0E-10","28.8530000000","No","Thu Jan 23 23:30:00 UTC 2014"
-"Thu Jan 23 01:32:32 UTC 2014","5107259365","uuid:77477bfb-7676-4b12-a3fc-8d1de586bc53","null","Andrew","Trip","Walk","null","null","null","","null","null","37.8732764900","-122.2604259000","71.0000000000","11.0000000000","Yes","null"
-"Thu Jan 23 05:13:08 UTC 2014","5107259365","uuid:33cf27fc-3842-4f82-8452-a7fdfe3b284e","null","Andrew","Activity","null","null","null","null","Work","null","Home","37.8319816900","-122.2726024100","-4.0000000000","3.0000000000","Yes","null"
-"Fri Jan 24 16:38:13 UTC 2014","5107259365","uuid:9e52d1b5-74aa-41a4-977a-aba89f84810a","null","Andrew","Trip","Bike","null","null","null","","null","null","37.8319981200","-122.2727077800","-4.0000000000","10.0000000000","Yes","null"
-"Fri Jan 24 16:43:54 UTC 2014","5107259365","uuid:57f0c05a-d8d6-4051-b62c-513c9b00e095","null","Andrew","Activity","null","null","null","null","Waiting","null","MacArthur BART","37.8288192000","-122.2669184000","0E-10","2.6590000000","Yes","null"
-"Thu Jan 23 21:25:52 UTC 2014","5107250774","uuid:8ab18df2-8e3b-4310-a8df-5e741a775c50","null","Caroline","Activity","null","null","null","null","Work School","null","McLaughlin Hall","37.8739073000","-122.2588749000","0E-10","25.2230000000","Yes","null"
-"Thu Jan 23 01:03:38 UTC 2014","5107250774","uuid:f117ba82-67f9-4a74-9bd0-1ee0a8da90be","null","Caroline","Trip","Walk","null","null","null","","null","null","37.8739176000","-122.2588960000","0E-10","23.5880000000","Yes","null"
-"Thu Jan 23 01:13:54 UTC 2014","5107250774","uuid:bc8e40a6-d94f-4198-be6a-099facfbc9a8","null","Caroline","Activity","null","null","null","null","Work","null","Mc laughlin hall","37.8738974000","-122.2588512000","0E-10","26.9600000000","Yes","null"
-"Thu Jan 23 02:15:45 UTC 2014","5107250774","uuid:f553e97b-eb5f-4382-a7fa-caccd0a0fdac","null","Caroline","Trip","Walk","null","null","null","","null","null","37.8738930000","-122.2588506000","0E-10","27.3180000000","Yes","null"
-"Thu Jan 23 02:38:46 UTC 2014","5107250774","uuid:6a16f7e1-1f84-4f46-ba27-97aeb1c051ec","null","Caroline","Activity","null","null","null","null","Meals","null","Eureka restaurant","37.8700564000","-122.2689239000","0E-10","26.0000000000","Yes","null"
-"Thu Jan 23 05:09:17 UTC 2014","5107250774","uuid:885f4521-983f-41a3-8845-91e1d6160db8","null","Caroline","Trip","Walk","null","null","null","","null","null","37.8700366400","-122.2690318400","26.0000000000","34.0000000000","Yes","null"
-"Thu Jan 23 05:25:07 UTC 2014","5107250774","uuid:9ba9bd9c-8311-4c07-a79a-aea42fa7bb0e","null","Caroline","Activity","null","null","null","null","Household_chores","null","Home","37.8782037000","-122.2699461000","0E-10","29.0430000000","Yes","null"
-"Thu Jan 23 02:20:53 UTC 2014","5107250744","uuid:9294ca70-947f-4d20-bc93-5472418f5e5f","null","Vij","Trip","Walk","null","null","null","","null","null","37.8738525700","-122.2594696200","61.9000000000","12.0000000000","Yes","null"
-"Thu Jan 23 02:37:34 UTC 2014","5107250744","uuid:bafbfb55-679e-4d79-b950-f5c939fec1e1","null","Vij","Activity","null","null","null","null","Meals Social","null","Eureka","37.8704512300","-122.2692320900","22.2000000000","4.0000000000","Yes","null"
-"Thu Jan 23 05:00:37 UTC 2014","5107250744","uuid:54f668b2-773b-4378-a7e2-c062c8554095","null","Vij","Trip","Walk","null","null","null","","null","null","37.8701430100","-122.2687625200","35.0000000000","4.0000000000","Yes","null"
-"Thu Jan 23 05:03:30 UTC 2014","5107250744","uuid:f60c9d68-50f0-42d0-90ef-e4eaf36b920c","null","Vij","Activity","null","null","null","null","Waiting","null","Bus stop","37.8703064100","-122.2679674000","51.4000000000","8.0000000000","Yes","null"
-"Thu Jan 23 05:07:28 UTC 2014","5107250744","uuid:b6d9ef0c-216d-41fb-a3e1-ad0648cac670","null","Vij","Trip","Transit","AC_Transit","null","null","","null","null","37.8708594000","-122.2677287000","0E-10","36.0000000000","Yes","null"
-"Thu Jan 23 05:17:38 UTC 2014","5107250744","uuid:d355130b-c4d0-42c7-afb4-25313f29c1f4","null","Vij","Trip","Walk","null","null","null","","null","null","37.8689981700","-122.2928067300","6.6000000000","6.0000000000","Yes","null"
-"Thu Jan 23 05:18:52 UTC 2014","5107250744","uuid:8d4bc358-d5d5-4f1f-b220-1cc2dadeeca6","null","Vij","Activity","null","null","null","null","Sleep","null","Home","37.8690531400","-122.2927996300","-10.1000000000","6.0000000000","Yes","null"
-"Fri Jan 24 17:46:48 UTC 2014","5107250744","uuid:7090551a-ff1f-4642-aeb2-0670bdf8db38","null","Vij","Trip","Bike","null","null","null","","null","null","37.8696983000","-122.2935005000","0E-10","28.0000000000","Yes","null"
-"Fri Jan 24 18:02:42 UTC 2014","5107250744","uuid:3f26261a-fa73-4eee-ac03-ca42ec7ee3fe","null","Vij","Activity","null","null","null","null","Work","null","McLaughlin Hall","37.8739783000","-122.2588785000","0E-10","20.0000000000","Yes","null"
-"Thu Jan 23 21:21:29 UTC 2014","5107250744","uuid:a6e5558d-b096-451d-9b47-c2699f6f8140","null","Vij","Activity","null","null","null","null","Work","null","McLaughlin Hall","37.8739544000","-122.2588582000","0E-10","20.0000000000","Yes","null"
+startTimeAutomatic,phoneNumber,meta:instanceID,intro1,userID,col12TripActivity,trip:col13TripMode,trip:transit:col14TransitAgency,trip:transit:col15OtherTransitAgency,trip:col14OtherMode,activity:col13ActivityPurpose,activity:col14OtherPurpose,activity:col15ExactPurpose,gpsTrace:Latitude,gpsTrace:Longitude,gpsTrace:Altitude,gpsTrace:Accuracy,recordDateTime,startTimeManual
+Thu Jan 23 21:21:29 UTC 2014,5107250744,uuid:a6e5558d-b096-451d-9b47-c2699f6f8140,null,Vij,Activity,null,null,null,null,Work,null,McLaughlin Hall,37.8739544,-122.2588582,0.00E+00,20,Yes,null
+Fri Jan 24 02:20:53 UTC 2014,5107250744,uuid:9294ca70-947f-4d20-bc93-5472418f5e5f,null,Vij,Trip,Walk,null,null,null,,null,null,37.87385257,-122.2594696,61.9,12,Yes,null
+Fri Jan 24 02:37:34 UTC 2014,5107250744,uuid:bafbfb55-679e-4d79-b950-f5c939fec1e1,null,Vij,Activity,null,null,null,null,Meals Social,null,Eureka,37.87045123,-122.2692321,22.2,4,Yes,null
+Fri Jan 24 05:00:37 UTC 2014,5107250744,uuid:54f668b2-773b-4378-a7e2-c062c8554095,null,Vij,Trip,Walk,null,null,null,,null,null,37.87014301,-122.2687625,35,4,Yes,null
+Fri Jan 24 05:03:30 UTC 2014,5107250744,uuid:f60c9d68-50f0-42d0-90ef-e4eaf36b920c,null,Vij,Activity,null,null,null,null,Waiting,null,Bus stop,37.87030641,-122.2679674,51.4,8,Yes,null
+Fri Jan 24 05:07:28 UTC 2014,5107250744,uuid:b6d9ef0c-216d-41fb-a3e1-ad0648cac670,null,Vij,Trip,Transit,AC_Transit,null,null,,null,null,37.8708594,-122.2677287,0.00E+00,36,Yes,null
+Fri Jan 24 05:17:38 UTC 2014,5107250744,uuid:d355130b-c4d0-42c7-afb4-25313f29c1f4,null,Vij,Trip,Walk,null,null,null,,null,null,37.86899817,-122.2928067,6.6,6,Yes,null
+Fri Jan 24 05:18:52 UTC 2014,5107250744,uuid:8d4bc358-d5d5-4f1f-b220-1cc2dadeeca6,null,Vij,Activity,null,null,null,null,Sleep,null,Home,37.86905314,-122.2927996,-10.1,6,Yes,null
+Fri Jan 24 17:46:48 UTC 2014,5107250744,uuid:7090551a-ff1f-4642-aeb2-0670bdf8db38,null,Vij,Trip,Bike,null,null,null,,null,null,37.8696983,-122.2935005,0.00E+00,28,Yes,null
+Fri Jan 24 18:02:42 UTC 2014,5107250744,uuid:3f26261a-fa73-4eee-ac03-ca42ec7ee3fe,null,Vij,Activity,null,null,null,null,Work,null,McLaughlin Hall,37.8739783,-122.2588785,0.00E+00,20,Yes,null
+Fri Jan 24 19:09:34 UTC 2014,5107250744,uuid:7797d8ce-85e8-4675-8135-3b560b36e023,null,Vij,Trip,Walk,null,null,null,,null,null,37.8739858,-122.2588021,0.00E+00,26.487,Yes,null
+Fri Jan 24 19:30:58 UTC 2014,5107250744,uuid:1e50b9cf-81b5-4549-a767-df0c7b411e50,null,Vij,Activity,null,null,null,null,Meals Social,null,Musashi,37.86424867,-122.2665527,21.8,8,Yes,null
+Fri Jan 24 20:40:49 UTC 2014,5107250744,uuid:d2d01852-3747-4e85-9daa-775732a55574,null,Vij,Trip,Walk,null,null,null,,null,null,37.86409446,-122.2665335,22.1,8,Yes,null
+Fri Jan 24 21:01:16 UTC 2014,5107250744,uuid:4a639d03-3329-46d9-9ff0-e004a9cf108a,null,Vij,Activity,null,null,null,null,Work,null,McLaughlin Hall,37.8740277,-122.2589281,0.00E+00,23.581,Yes,null
+Sat Jan 25 02:23:37 UTC 2014,5107250744,uuid:8d87483f-70ee-4cc2-ba5e-d0b883c4031c,null,Vij,Trip,Bike,null,null,null,,null,null,37.8738269,-122.2594423,67.8,8,Yes,null
+Sat Jan 25 02:28:53 UTC 2014,5107250744,uuid:c046a1cb-1d38-4299-8afe-befd3b1cd51c,null,Vij,Activity,null,null,null,null,Waiting,null,BART Stn,37.8685378,-122.2652175,0.00E+00,983,Yes,null
+Sat Jan 25 02:47:32 UTC 2014,5107250744,uuid:6232d024-e369-48d4-96f9-fa8654b2dd4a,null,Vij,Trip,Transit,BART,null,null,,null,null,37.8767202,-122.2785257,0.00E+00,1692,Yes,null
+Sat Jan 25 03:20:46 UTC 2014,5107250744,uuid:51cf4ad1-ce57-4e74-8daf-1c3a61524e45,null,Vij,Trip,Bike,null,null,null,,null,null,37.76487217,-122.4199048,21.8,4,Yes,null
+Sat Jan 25 03:30:58 UTC 2014,5107250744,uuid:2a6775aa-1c6c-4cbf-b583-f9f876b2c1fa,null,Vij,Activity,null,null,null,null,Recreation Social,null,Shona's,37.75995055,-122.4338321,46.7,4,Yes,null
+Sat Jan 25 04:54:01 UTC 2014,5107250744,uuid:a6ab7980-2423-44ed-b28a-02aa70fe8bd0,null,Vij,Trip,Walk,null,null,null,,null,null,37.75933196,-122.4342065,9.6,4,No,Sat Jan 25 04:52:00 UTC 2014
+Sat Jan 25 04:58:03 UTC 2014,5107250744,uuid:77865b7b-72e8-447c-a32f-505f2aa358f1,null,Vij,Activity,null,null,null,null,Meals,null,Wasabi bistro,37.7605843,-122.4349426,0.00E+00,30,Yes,null
+Sat Jan 25 05:54:43 UTC 2014,5107250744,uuid:32fc3265-ea69-43fc-ab70-310af93f1320,null,Vij,Trip,Walk,null,null,null,,null,null,37.76064974,-122.4349224,27.8,3,Yes,null
+Sat Jan 25 06:04:14 UTC 2014,5107250744,uuid:e05fa7a4-dd0b-4291-b9c3-f1dda073fec3,null,Vij,Activity,null,null,null,null,Shopping,null,Beer,37.7626876,-122.4332251,-1.5,3,No,Sat Jan 25 06:02:00 UTC 2014
+Sat Jan 25 06:05:01 UTC 2014,5107250744,uuid:e73b090a-a2d6-4191-b814-68cbc669f8ca,null,Vij,Trip,Walk,null,null,null,,null,null,37.76247703,-122.4337127,-3.3,6,Yes,null
+Sat Jan 25 06:10:31 UTC 2014,5107250744,uuid:dc231310-06fe-411a-ac51-34ebc0819009,null,Vij,Activity,null,null,null,null,Recreation Social,null,Shona's,37.75991467,-122.4340385,-8,4,Yes,null
+Sat Jan 25 08:06:01 UTC 2014,5107250744,uuid:f60f1c82-d987-43ac-9295-0e5e3dcf7a2b,null,Vij,Activity,null,null,null,null,Sleep,null,Dave's,37.85069937,-122.2607549,38.3,6,Yes,null
+Sat Jan 25 21:48:17 UTC 2014,5107250744,uuid:37645498-476a-4fbd-84ce-e4ae27455921,null,Vij,Trip,Bike,null,null,null,,null,null,37.8489104,-122.270793,0.00E+00,833,No,Sat Jan 25 21:39:00 UTC 2014
+Sat Jan 25 21:49:02 UTC 2014,5107250744,uuid:da4af84e-b1da-4c00-bfe5-5fdf52a795a7,null,Vij,Activity,null,null,null,null,Waiting,null,BART Stn,37.8489104,-122.270793,0.00E+00,833,No,Sat Jan 25 21:47:00 UTC 2014
+Sat Jan 25 21:51:26 UTC 2014,5107250744,uuid:6801f917-56f8-4ce7-bda0-4baf3194f7e2,null,Vij,Trip,Transit,BART,null,null,,null,null,37.8489104,-122.270793,0.00E+00,833,Yes,null
+Sat Jan 25 21:54:51 UTC 2014,5107250744,uuid:b7a33a2c-b44d-4a70-a066-3e8d53ebc456,null,Vij,Trip,Transit,BART,null,null,,null,null,37.82849911,-122.2672391,8.1,4,Yes,null
+Sat Jan 25 22:17:00 UTC 2014,5107250744,uuid:0bcaa740-84c8-42d1-85f5-f4fdd2612f15,null,Vij,Trip,Bike,null,null,null,,null,null,37.7787964,-122.4142384,0.00E+00,40.5,No,Sat Jan 25 22:20:00 UTC 2014
+Sat Jan 25 22:47:09 UTC 2014,5107250744,uuid:b24b94cc-291d-475b-a963-b54759d5f2e0,null,Vij,Activity,null,null,null,null,Household_chores Meals Social,null,Mark's,37.77447639,-122.4509521,7.6,16,Yes,null
+Sun Jan 26 01:15:04 UTC 2014,5107250744,uuid:8499d946-0eb0-43f1-bd2d-23507cc141fe,null,Vij,Trip,Walk,null,null,null,,null,null,37.77403801,-122.4511472,61.3,6,Yes,null
+Sun Jan 26 01:44:38 UTC 2014,5107250744,uuid:d18dad9c-6935-4ddf-a09a-b3b2d2de4a25,null,Vij,Activity,null,null,null,null,Recreation,null,Park,37.77203156,-122.4481134,68.4,12,Yes,null
+Sun Jan 26 02:00:17 UTC 2014,5107250744,uuid:82d911be-85e0-4312-b2ef-41ede3c5343a,null,Vij,Trip,Walk,null,null,null,,null,null,37.7738846,-122.4510895,0.00E+00,53.298,No,Sun Jan 26 01:50:00 UTC 2014
+Sun Jan 26 02:01:14 UTC 2014,5107250744,uuid:12063206-a59e-47b0-b79b-4df9aa1fdfb8,null,Vij,Activity,null,null,null,null,Recreation,null,Mark's,37.7743817,-122.4510175,0.00E+00,59.258,Yes,null
+Sun Jan 26 03:12:24 UTC 2014,5107250744,uuid:a5449f2b-e960-4c49-a2ab-e5274cc694e0,null,Vij,Trip,Bike,null,null,null,,null,null,37.7650133,-122.4211703,0.00E+00,36,No,Sun Jan 26 03:00:00 UTC 2014
+Sun Jan 26 03:13:07 UTC 2014,5107250744,uuid:9105e826-dcdc-47a0-8e08-ec27702c39d3,null,Vij,Activity,null,null,null,null,Meals,null,Taqueria,37.7650243,-122.421149,0.00E+00,45,No,Sun Jan 26 03:10:00 UTC 2014
+Sun Jan 26 03:21:56 UTC 2014,5107250744,uuid:a9acca06-e1e6-4e9d-ae9c-2972f815299f,null,Vij,Trip,Walk,null,null,null,,null,null,37.76505509,-122.4201798,2,4,No,Sun Jan 26 03:20:00 UTC 2014
+Sun Jan 26 03:22:54 UTC 2014,5107250744,uuid:3aebc2f4-a73b-4411-807d-be5556304f7f,null,Vij,Activity,null,null,null,null,Waiting,null,BART Stn,37.747272,-122.4293997,0.00E+00,3504,Yes,null
+Sun Jan 26 03:37:15 UTC 2014,5107250744,uuid:59e458ab-85f8-4980-b7e5-c9abb3a0ace4,null,Vij,Trip,Transit,BART,null,null,,null,null,37.747272,-122.4293997,0.00E+00,3504,No,Sun Jan 26 03:39:00 UTC 2014
+Sun Jan 26 04:02:50 UTC 2014,5107250744,uuid:91f9fc90-7998-4287-b645-e3f1b3ce8555,null,Vij,Activity,null,null,null,null,Waiting,null,BART stn,37.8031346,-122.2754186,0.00E+00,1686,Yes,null
+Sun Jan 26 04:21:09 UTC 2014,5107250744,uuid:5a43a5dd-95dc-4117-b571-3af44e20c201,null,Vij,Trip,Transit,BART,null,null,,null,null,37.8031346,-122.2754186,0.00E+00,1686,Yes,null
+Sun Jan 26 06:21:09 UTC 2014,5107250744,uuid:9fb45a10-602a-413c-91fc-40fd0dd1c8b7,null,Vij,Activity,null,null,null,null,Sleep,null,Dave's,37.85074353,-122.2605957,27.2,4,Yes,null
+Sun Jan 26 17:30:57 UTC 2014,5107250744,uuid:824f234d-386f-4be2-8447-ac3324472b9f,null,Vij,Trip,Walk,null,null,null,,null,null,37.85106208,-122.2605815,23.6,4,Yes,null
+Sun Jan 26 17:37:57 UTC 2014,5107250744,uuid:824f234d-386f-4be2-8447-ac3324472b9f,null,Vij,Activity,null,null,null,null,Shopping,null,Whole Foods,37.85106208,-122.2605815,23.6,4,Yes,null
+Sun Jan 26 17:43:57 UTC 2014,5107250744,uuid:824f234d-386f-4be2-8447-ac3324472b9f,null,Vij,Trip,Walk,null,null,null,,null,null,37.85106208,-122.2605815,23.6,4,Yes,null
+Sun Jan 26 18:00:58 UTC 2014,5107250744,uuid:9fb45a10-602a-413c-91fc-40fd0dd1c8b7,null,Vij,Activity,null,null,null,null,Household_chores Meals Recreation Social Relaxing,null,Dave's,37.85074353,-122.2605957,27.2,4,No,Sun Jan 26 17:50:00 UTC 2014
+Sun Jan 26 22:09:55 UTC 2014,5107250744,uuid:08aea668-102c-4b37-93da-7d29eec152a8,null,Vij,Trip,Bike,null,null,null,,null,null,37.8503346,-122.2606109,0.00E+00,42.286,Yes,null
+Sun Jan 26 22:47:40 UTC 2014,5107250744,uuid:f848e9d3-7d66-458a-8ae9-d9b0944e727b,null,Vij,Activity,null,null,null,null,Household_chores Meals Recreation Sleep,null,Home,37.86944847,-122.2932852,0.2,16,Yes,null
+Sun Jan 26 22:51:13 UTC 2014,5107250744,uuid:f4afdaa3-a1b3-44a8-86b0-d6a4d39adc94,null,Vij,Trip,Walk,null,null,null,,null,null,37.8692642,-122.2931752,0.00E+00,39,Yes,null
+Sun Jan 26 22:54:38 UTC 2014,5107250744,uuid:e0278a04-181f-44fb-b729-476c00731967,null,Vij,Activity,null,null,null,null,Meals,null,Pizza,37.86902732,-122.2915824,-1.6,6,Yes,null
+Sun Jan 26 23:03:30 UTC 2014,5107250744,uuid:0d7023d2-5ef5-4266-842f-4b046c69de8a,null,Vij,Trip,Walk,null,null,null,,null,null,37.869301,-122.2921521,-20.8,8,Yes,null
+Sun Jan 26 23:06:59 UTC 2014,5107250744,uuid:50a10407-cfae-4278-8bbf-34e5c02afc2e,null,Vij,Activity,null,null,null,null,Household_chores Meals Recreation Sleep,null,Home,37.86969481,-122.2929306,14.4,24,Yes,null
+Mon Jan 27 18:32:51 UTC 2014,5107250744,uuid:0ba120ed-cadb-4a91-a5b9-9b398c41b734,null,Vij,Trip,Walk,null,null,null,,null,null,37.86928632,-122.2932805,-14.8,4,Yes,null
+Mon Jan 27 18:34:45 UTC 2014,5107250744,uuid:78137234-45e8-42ba-8c5a-f1b8ee0eadfe,null,Vij,Activity,null,null,null,null,Waiting,null,Bus stop,37.86897008,-122.2923104,-11.6,4,Yes,null
+Mon Jan 27 18:50:54 UTC 2014,5107250744,uuid:e4fd08a6-de9a-41d8-a0b3-26d9a75489b0,null,Vij,Trip,Transit,AC_Transit,null,null,,null,null,37.87159498,-122.2733345,25.2,3,No,Mon Jan 27 18:45:00 UTC 2014
+Mon Jan 27 18:53:46 UTC 2014,5107250744,uuid:1437de02-ea0a-4137-91cb-69bcca8e73ba,null,Vij,Trip,Walk,null,null,null,,null,null,37.87222426,-122.2679521,36.4,4,Yes,null
+Mon Jan 27 19:05:33 UTC 2014,5107250744,uuid:35557305-d6ba-4731-893a-053087654759,null,Vij,Activity,null,null,null,null,Work,null,McLaughlin,37.8739898,-122.2588896,0.00E+00,20,Yes,null
+Mon Jan 27 20:02:54 UTC 2014,5107250744,uuid:8923599d-3105-453e-b49b-689ace8c8f8d,null,Vij,Trip,Walk,null,null,null,,null,null,37.87392499,-122.2582059,34.5,3,Yes,null
+Mon Jan 27 20:22:13 UTC 2014,5107250744,uuid:2d256b4c-62bf-4abf-ba8e-ccc62ca2cc04,null,Vij,Activity,null,null,null,null,Work,null,Wurster,37.874007,-122.2588945,0.00E+00,20,No,Mon Jan 27 20:09:00 UTC 2014
+Mon Jan 27 20:31:54 UTC 2014,5107250744,uuid:8923599d-3105-453e-b49b-689ace8c8f8d,null,Vij,Trip,Walk,null,null,null,,null,null,37.87392499,-122.2582059,34.5,3,Yes,null
+Mon Jan 27 20:39:00 UTC 2014,5107250744,uuid:9e01ec2d-391b-4d62-bda4-bfc17d5bda43,null,Vij,Activity,null,null,null,null,Work,null,McLaughlin,37.8739478,-122.2588558,0.00E+00,20.008,Yes,null
+Tue Jan 28 02:16:16 UTC 2014,5107250744,uuid:a1cf0897-80c8-4814-b505-814346ab56de,null,Vij,Trip,Walk,null,null,null,,null,null,37.87332877,-122.2599998,61.7,3,No,Tue Jan 28 02:15:00 UTC 2014
+Tue Jan 28 02:35:04 UTC 2014,5107250744,uuid:23a3e038-bc85-4e4e-814e-0ce5d8163b4b,null,Vij,Activity,null,null,null,null,Waiting,null,Bus stop,37.87110214,-122.2675118,42.1,4,No,Tue Jan 28 02:25:00 UTC 2014
+Tue Jan 28 02:35:42 UTC 2014,5107250744,uuid:8a621e8a-93b2-4671-a6a9-6ff5d92bf634,null,Vij,Trip,Transit,AC_Transit,null,null,,null,null,37.87190108,-122.2677109,56.9,6,Yes,null
+Tue Jan 28 02:47:01 UTC 2014,5107250744,uuid:04d46c69-7be0-4b12-afaf-c40e782417df,null,Vij,Trip,Walk,null,null,null,,null,null,37.86905199,-122.2929724,-12.2,4,Yes,null
+Tue Jan 28 02:52:52 UTC 2014,5107250744,uuid:8fb27bdc-d6ba-4dff-9d9c-61a7191f70ad,null,Vij,Activity,null,null,null,null,Shopping,null,Mi tierra,37.86801378,-122.2920753,-2.5,4,Yes,null
+Tue Jan 28 03:06:35 UTC 2014,5107250744,uuid:99acfde6-8cc5-48bd-9dca-62e89f0f5616,null,Vij,Trip,Walk,null,null,null,,null,null,37.86795439,-122.2918539,5.3,3,Yes,null
+Tue Jan 28 03:10:42 UTC 2014,5107250744,uuid:d9032c14-4873-496b-b5bf-fe0f5c11b33a,null,Vij,Activity,null,null,null,null,Meals Recreation Sleep Relaxing,null,Home,37.86925221,-122.2930608,-6.4,6,Yes,null
+Tue Jan 28 17:39:52 UTC 2014,5107250744,uuid:de7d84a9-def0-44ec-968a-a0262eedb474,null,Vij,Trip,Bike,null,null,null,,null,null,37.869425,-122.2930636,-9.9,8,Yes,null
+Tue Jan 28 17:59:27 UTC 2014,5107250744,uuid:d841da26-76c9-4aa6-830a-945591c52909,null,Vij,Activity,null,null,null,null,Work,null,Mclaughlin,37.8739993,-122.258907,0.00E+00,20,No,Tue Jan 28 17:57:00 UTC 2014
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
