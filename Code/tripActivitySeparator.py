@@ -2,10 +2,9 @@ import csv
 import math
 
 
-# Procedure that takes as input a tab-delimited txt file, and stores the NUMERICAL data as a list, 
+# Procedure that takes as input a tab-delimited txt file, and stores the data as a list, 
 # where each element of the list is a list itself that corresponds to a row in the file,
-# and each element of that list corresponds to an entry in that row. Any non-numerical elements
-# in any row in the txt file are skipped over.
+# and each element of that list corresponds to an entry in that row. 
 
 def parseCSV(filePath, data):
     with open(filePath, 'rU') as csvfile:
@@ -15,7 +14,7 @@ def parseCSV(filePath, data):
                 try:
                     tList.append(float(element))    
                 except:
-                    pass
+                    tList.append(element)    
             data.append(tList)
 
 
@@ -138,11 +137,11 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_010314.txt'
+filePath += 'Travel-Diary/Data/Google Play API/5107250744_Vij_01242014.txt'
 gpsTraces = []
 parseCSV(filePath, gpsTraces)
 
 trips, activities = [], []
-minDuration, maxRadius, minInterval = 180000, 50, 60000
+minDuration, maxRadius, minInterval = 180000, 50, 120000
 inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
 print trips, activities
