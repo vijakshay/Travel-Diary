@@ -210,9 +210,9 @@ def mergeData(gpsData, groundData):
 
 
 # A script that combines the GPS data with the ground truth in a tab-delimited text file that can
-# subsequently be used to train inference algorithms. The GPS data file is accessed automatically
-# by the script. The ODK file containing ground truth must be exported manually as a csv and 
-# saved to the local hard drive.
+# subsequently be used to train inference algorithms. The GPS data file must be saved manually
+# as a tab-delimited text file on the local hard drive. The ODK file containing ground truth must 
+# be exported manually as a csv and saved to the local hard drive as well.
 
 # Personal details, change as appropriate
 testerName = 'Vij'       # Should be the same as that listed in the ODK form
