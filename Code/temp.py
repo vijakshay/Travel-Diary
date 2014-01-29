@@ -68,27 +68,14 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
     
     i = 0
     while i < len(gpsTraces) - 1:
-               
-        # Skip over any black points at the beginning 
-        while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= 100:
-            i += 1
-
+        
         # Create a collection of successive points that lie within a circle of radius maxRadius meters
         j = i + 1
-        points = [gpsTraces[i][2:4]]
-        while j < len(gpsTraces) and gpsTraces[j][4] < 100 and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius:
+        points = [gpsTraces[i][2:4]]  
+        while j < len(gpsTraces) and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius:
             points.append(gpsTraces[j][2:4])
             j += 1
         
-        # Check for black points
-        k = j 
-        while k < len(gpsTraces) and gpsTraces[k][4] >= 100:
-            k += 1
-        if k > j:
-            if k < len(gpsTraces):
-                if calDistanceToPoint(gpsTraces[k][2:4], points) < maxRadius:
-                    j = k + 1
-                            
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -100,9 +87,6 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
             i = j - 1
         else:
             i += 1
-
-        if k == len(gpsTraces):
-            break
 
     numActivities = len(activities)
     if numActivities != 0:
@@ -117,51 +101,76 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 trips.append([activities[i][-1], activities[i+1][0]])
         
         # Check if the GPS log ends with a trip
-        if activities[-1][-1] < len(gpsTraces) - 1:
-            i = len(gpsTraces) - 1
-            while i > activities[-1][-1] and gpsTraces[i][4] > 100:
-                i -= 1
-            if i != activities[-1][-1]:            
-                trips.append([activities[-1][-1], i])
+        if activities[-1][-1] < len(gpsTraces)-1:
+            trips.append([activities[-1][-1], len(gpsTraces)-1])
     else:
         trips.append([0, len(gpsTraces)-1])
         
 
-# Method that takes as input the GPS data, and the inferred trips and activities, and returns the 
-# total time elapsed and distance covered over the dataset, and the time and distance correctly inferred
-# as either a trip or an activity
+# Functions that calculate the four features of a GPS point: distance to next point (in meters), 
+# time interval (seconds), speed (mph) and acceleration (mph2)
 
-def calInfAccuray(trips, activities, gpsTraces):
-    
-    tripsInferred = []
-    for trip in trips:
-        tripsInferred += range(trip[0], trip[1])
-    
-    activitiesInferred = []
-    for activity in activities:
-        activitiesInferred += range(activity[0], activity[1])
+def lengthPoint(gpsTraces, j):
+   return calDistance(gpsTraces[j][2:4], gpsTraces[j+1][2:4])
 
-    timeTotal, timeInferred, distTotal, distInferred = 0, 0, 0, 0
+def timePoint(gpsTraces, j):
+   return (gpsTraces[j+1][1] - gpsTraces[j][1]) / 1000.0
+
+def speedPoint(gpsTraces, j):
+  return 2.23694 * (float(lengthPoint(gpsTraces,j))/timePoint(gpsTraces,j))
+
+def accelerationPoint(gpsTraces, j):
+  return (2.23694/60) * (float(lengthPoint(gpsTraces,j))/(timePoint(gpsTraces,j) ** 2))
+  
+  
+
+
+def inferMode(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
+
+    # Step 1: Separate walk points from non-walk points
+    walkDummy = []
     for i in range(0, len(gpsTraces) - 1):
-        timeTotal += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-        distTotal += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)            
-
-        if gpsTraces[i][10] == 'Trip' and i in tripsInferred:
-            timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-            distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
-
-        if gpsTraces[i][10] == 'Activity' and i in activitiesInferred:
-            timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-            distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
-        
-    return timeTotal, timeInferred, distTotal, distInferred 
+        if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
+	    walkDummy.append(1); 
+	else:
+	    walkDummy.append(0)
+    print walkDummy
+    
+    # Step 2: Combine points into walk and non-walk segments
+    segments, numSegments, currentPoint = [], 0, 0
+    while currentPoint < len(gpsTraces) - 1:
+        segments.append([currentPoint])
+        while currentPoint < len(gpsTraces) - 2 and walkDummy[currentPoint] == walkDummy[currentPoint + 1]:
+            currentPoint += 1
+        if currentPoint < len(gpsTraces) - 1:
+            currentPoint += 1
+        segments[numSegments].append(currentPoint)
+        distance = round(calDistance(gpsTraces[segments[-1][0]][2:4], gpsTraces[segments[-1][1]][2:4]), 0)
+        time = round((gpsTraces[segments[-1][1]][1] - gpsTraces[segments[-1][0]][1]) / 1000, 0)
+        speed = round((2.23694 * distance)/time, 0)
+        acceleration = round((2.23694 / 60) * (distance/(time ** 2)), 2)
+        segments[numSegments].append(distance)
+        segments[numSegments].append(time)
+        segments[numSegments].append(speed)
+        segments[numSegments].append(acceleration)
+        numSegments += 1
+    print segments
+    print '\n'
+    '''
+    # Step 3: Check if segment length exceeds minSegmentDuration seconds
+    tempSegments, numSegments = [], 0
+    for i in range(0, len(segments) - 1):
+        tempSegments.append(segments[i])
+        if numSegments > 0 and gpsTraces[segment[1]][1] - gpsTraces[segment[0]][1]) < minSegmentDuration:
+            tempSegments[numSegments][1] = segment[1]
+    '''
 
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
 # format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
 # 9-digit number with no brackets and hyphens, and date data recorded is in MMDDYYYY format.
 # 
-# The file should contain fourteen columns. The first ten columns denote the tester ID, timestamp (in epoch time, 
+# The file should contain fourteen columns. The first nine columns denote the tester ID, timestamp (in epoch time, 
 # recorded in milliseconds), latitude, longitude, GPS accuracy (in feet), battery status (in percentage), 
 # sampling rate (in seconds), accelermoeter reading, activity as inferred by the Google API, and PST time, respectively. 
 # The values for each of these fields will be generated by the tracking app installed on the test phone in 
@@ -175,28 +184,21 @@ def calInfAccuray(trips, activities, gpsTraces):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Base directory where you clone the repository, change as appropriate
-dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
+filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Google Play API/'
-dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
+filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_01032014.txt'
+gpsTraces = []
+parseCSV(filePath, gpsTraces)
 
+trips, activities = [], []
 minDuration, maxRadius, minInterval = 180000, 50, 120000
-timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
-for dataFile in dataFiles:
-    gpsTraces = []
-    filePath = dirPath + dataFile
-    try:
-        parseCSV(filePath, gpsTraces)
-        trips, activities = [], []
-        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
-        timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(trips, activities, gpsTraces)
-        timeTotTrips += timeTotal
-        timeInfTrips += timeInferred
-        distTotTrips += distTotal
-        distInfTrips += distInferred
-    except:
-        pass
+inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
+print trips, activities
 
-print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
-print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
+'''
+maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 4, 0.2237, 120
+for trip in trips:
+    print trip
+    inferMode(gpsTraces[trip[0]:trip[1]], maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
+'''
