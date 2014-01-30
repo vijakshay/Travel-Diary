@@ -179,16 +179,18 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
 # a segment to consider it as a certain segment. segment is an empty list  
 
 def tripFirstSegmentation(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minConsecutivePoints, segment, tripDescription):
-   beginTrip= trip[0];
-   endTrip= trip[1];
-   lenTrip= endTrip-beginTrip + 1;
-   for i in range(0, lenTrip-1):
-	  if speedPoint(gpsTraces,beginTrip+i)<maxWalkSpeed and accelerationPoint(gpsTraces,beginTrip+i)<maxWalkAcceleration :
-		 tripDescription.append([beginTrip+i,1]); #walk point
+
+   beginTrip = trip[0];
+   endTrip = trip[1];
+   lenTrip = endTrip - beginTrip + 1;
+   for i in range(beginTrip, endTrip):
+	  if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
+		 tripDescription.append([i, 1]); #walk point
 	  else:
-		 tripDescription.append([beginTrip+i,0]);
-   i=1;
-   beginSegment=0;
+		 tripDescription.append([i, 0]);
+
+   i = 1;
+   beginSegment = 0;
    while i<lenTrip-minConsecutivePoints+1:
 	if tripDescription[i][1]!=tripDescription[i-1][1]:
 		newsegment=1;
@@ -199,6 +201,7 @@ def tripFirstSegmentation(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, mi
 			segment.append([beginTrip+beginSegment,beginTrip+i-1,tripDescription[beginSegment][1], calDistance(gpsTraces[beginSegment+beginTrip][2:4], gpsTraces[i-1+beginTrip][2:4]), maxVelocity(gpsTraces,beginSegment+beginTrip,i-1+beginTrip), maxAcceleration(gpsTraces,beginSegment+beginTrip,i-1+beginTrip), meanVelocity(gpsTraces,beginSegment+beginTrip,i+beginTrip-1), meanAcceleration(gpsTraces,beginSegment+beginTrip,i+beginTrip-1), expVelocity(gpsTraces,beginSegment+beginTrip,i+beginTrip-1), expAcceleration(gpsTraces,beginSegment+beginTrip,i+beginTrip-1)])
 			beginSegment=i;
 	i=i+1;
+   
    if i>lenTrip-minConsecutivePoints:
 	    segment.append([beginTrip+beginSegment,endTrip,tripDescription[beginSegment][1], calDistance(gpsTraces[beginSegment+beginTrip][2:4], gpsTraces[endTrip][2:4]), maxVelocity(gpsTraces,beginSegment+beginTrip, endTrip), maxAcceleration(gpsTraces,beginSegment+beginTrip,endTrip), meanVelocity(gpsTraces,beginSegment+beginTrip,endTrip),meanAcceleration(gpsTraces,beginSegment+beginTrip,endTrip),  expVelocity(gpsTraces,beginSegment+beginTrip,endTrip), expAcceleration(gpsTraces,beginSegment+beginTrip, endTrip)])
  
@@ -247,7 +250,7 @@ def firstSegmentation(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minConsecuti
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_010314.txt'
+filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_01032014.txt'
 gpsTraces = []
 parseCSV(filePath, gpsTraces)
 
