@@ -64,25 +64,26 @@ def calDistanceToPoint(point, points):
 # a circle of radius maxRadius meters. The minimum interval between successive activites must be at least 
 # minInterval milliseconds, for them to be recorded as separate activities.
 
-def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval):
+def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
     
     i = 0
     while i < len(gpsTraces) - 1:
                
         # Skip over any black points at the beginning 
-        while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= 100:
+        while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= gpsAccuracyThreshold:
             i += 1
 
         # Create a collection of successive points that lie within a circle of radius maxRadius meters
         j = i + 1
         points = [gpsTraces[i][2:4]]
-        while j < len(gpsTraces) and gpsTraces[j][4] < 100 and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius:
+        while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
+                and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius):
             points.append(gpsTraces[j][2:4])
             j += 1
         
         # Check for black points
         k = j 
-        while k < len(gpsTraces) and gpsTraces[k][4] >= 100:
+        while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
             k += 1
         if k > j:
             if k < len(gpsTraces):
@@ -119,7 +120,7 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
         # Check if the GPS log ends with a trip
         if activities[-1][-1] < len(gpsTraces) - 1:
             i = len(gpsTraces) - 1
-            while i > activities[-1][-1] and gpsTraces[i][4] > 100:
+            while i > activities[-1][-1] and gpsTraces[i][4] > gpsAccuracyThreshold:
                 i -= 1
             if i != activities[-1][-1]:            
                 trips.append([activities[-1][-1], i])
@@ -181,7 +182,7 @@ dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/'
 dirPath += 'Travel-Diary/Data/Google Play API/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-minDuration, maxRadius, minInterval = 180000, 50, 120000
+minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 100
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 for dataFile in dataFiles:
     gpsTraces = []
@@ -189,7 +190,7 @@ for dataFile in dataFiles:
     try:
         parseCSV(filePath, gpsTraces)
         trips, activities = [], []
-        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
+        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
         timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(trips, activities, gpsTraces)
         timeTotTrips += timeTotal
         timeInfTrips += timeInferred

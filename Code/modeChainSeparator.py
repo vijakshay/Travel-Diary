@@ -64,18 +64,32 @@ def calDistanceToPoint(point, points):
 # a circle of radius maxRadius meters. The minimum interval between successive activites must be at least 
 # minInterval milliseconds, for them to be recorded as separate activities.
 
-def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval):
+def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
     
     i = 0
     while i < len(gpsTraces) - 1:
-        
+               
+        # Skip over any black points at the beginning 
+        while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= gpsAccuracyThreshold:
+            i += 1
+
         # Create a collection of successive points that lie within a circle of radius maxRadius meters
         j = i + 1
-        points = [gpsTraces[i][2:4]]  
-        while j < len(gpsTraces) and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius:
+        points = [gpsTraces[i][2:4]]
+        while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
+                and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius):
             points.append(gpsTraces[j][2:4])
             j += 1
         
+        # Check for black points
+        k = j 
+        while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
+            k += 1
+        if k > j:
+            if k < len(gpsTraces):
+                if calDistanceToPoint(gpsTraces[k][2:4], points) < maxRadius:
+                    j = k + 1
+                            
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -87,6 +101,9 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
             i = j - 1
         else:
             i += 1
+
+        if k == len(gpsTraces):
+            break
 
     numActivities = len(activities)
     if numActivities != 0:
@@ -101,8 +118,12 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 trips.append([activities[i][-1], activities[i+1][0]])
         
         # Check if the GPS log ends with a trip
-        if activities[-1][-1] < len(gpsTraces)-1:
-            trips.append([activities[-1][-1], len(gpsTraces)-1])
+        if activities[-1][-1] < len(gpsTraces) - 1:
+            i = len(gpsTraces) - 1
+            while i > activities[-1][-1] and gpsTraces[i][4] > gpsAccuracyThreshold:
+                i -= 1
+            if i != activities[-1][-1]:            
+                trips.append([activities[-1][-1], i])
     else:
         trips.append([0, len(gpsTraces)-1])
         
@@ -184,21 +205,27 @@ def inferMode(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Base directory where you clone the repository, change as appropriate
-filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
+dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_01032014.txt'
-gpsTraces = []
-parseCSV(filePath, gpsTraces)
+dirPath += 'Travel-Diary/Data/Google Play API/'
+dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-trips, activities = [], []
-minDuration, maxRadius, minInterval = 180000, 50, 120000
-inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
-print trips, activities
+minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 100
+maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 4.5, 0.2237, 120
+timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 
-'''
-maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 4, 0.2237, 120
-for trip in trips:
-    print trip
-    inferMode(gpsTraces[trip[0]:trip[1]], maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
-'''
+for dataFile in dataFiles:
+    gpsTraces = []
+    filePath = dirPath + dataFile
+    print dataFile
+    print
+    try:
+        parseCSV(filePath, gpsTraces)
+        trips, activities = [], []
+        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
+        for trip in trips:
+            print trip
+            inferMode(gpsTraces[trip[0]:trip[1]], maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
+    except:
+        pass

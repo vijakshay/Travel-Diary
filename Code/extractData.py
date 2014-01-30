@@ -167,7 +167,7 @@ def getGroundData(testerName, phoneNum, date, gmtConversion, groundFilePath):
 # Procedure that takes as input two lists, one containing GPS data and one containing ground truth, and combines them 
 # into a single list
 
-def mergeGPSWithGroundTruth(gpsData, groundData):
+def mergeRecord(gpsData, groundData):
 
     gpsData.append(groundData[5])
     if groundData[5] == 'Trip':
@@ -198,12 +198,12 @@ def mergeData(gpsData, groundData):
         if groundData[i][-1] > int(gpsData[j][1]):
             j += 1
         elif groundData[i][-1] <= int(gpsData[j][1]) and groundData[i+1][-1] > int(gpsData[j][1]):
-            gpsData[j] = mergeGPSWithGroundTruth(gpsData[j], groundData[i])
+            gpsData[j] = mergeRecord(gpsData[j], groundData[i])
             j += 1
         else:
             i += 1
     while j < len(gpsData):
-        gpsData[j] = mergeGPSWithGroundTruth(gpsData[j], groundData[i])
+        gpsData[j] = mergeRecord(gpsData[j], groundData[i])
         j += 1
 
     return gpsData
