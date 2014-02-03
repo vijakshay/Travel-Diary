@@ -63,6 +63,8 @@ def calDistanceToPoint(point, points):
 # An activity is defined as a set of GPS points over a minimum duration of minDuration milliseconds that fall within 
 # a circle of radius maxRadius meters. The minimum interval between successive activites must be at least 
 # minInterval milliseconds, for them to be recorded as separate activities.
+#
+# GPS traces whose accuracy is above gpsAccuracyThreshold meters are ignored.
 
 def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
     
@@ -80,7 +82,7 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius):
             points.append(gpsTraces[j][2:4])
             j += 1
-        
+
         # Check for black points
         k = j 
         while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
@@ -89,7 +91,7 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
             if k < len(gpsTraces):
                 if calDistanceToPoint(gpsTraces[k][2:4], points) < maxRadius:
                     j = k + 1
-                            
+
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -100,6 +102,8 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 activities.append([i, j-1])
             i = j - 1
         else:
+            #if len(activities) > 0:
+            #    activities[-1][-1] = j-1
             i += 1
 
         if k == len(gpsTraces):
@@ -182,7 +186,7 @@ dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/'
 dirPath += 'Travel-Diary/Data/Google Play API/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 100
+minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 100, 120000, 100
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 for dataFile in dataFiles:
     gpsTraces = []
@@ -191,6 +195,7 @@ for dataFile in dataFiles:
         parseCSV(filePath, gpsTraces)
         trips, activities = [], []
         inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
+        print dataFile, trips, activities 
         timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(trips, activities, gpsTraces)
         timeTotTrips += timeTotal
         timeInfTrips += timeInferred

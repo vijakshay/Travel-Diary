@@ -248,7 +248,7 @@ for dataFile in dataFiles:
         print dataFile + '\n'
         parseCSV(filePath, gpsTraces)
         trips, activities = [], []
-        minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 100
+        minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 100, 120000, 100
         inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
         
         modeChains = []
