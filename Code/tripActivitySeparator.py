@@ -40,12 +40,12 @@ def calDistance(point1, point2):
 
 # Function that takes as input the GPS location of a point and a list of points, where each element of the 
 # list is a tuple containing the latitutde and longitude for that point. The function outputs the maximum 
-# distance, in meters, from that point to any point in the list of points
+# distance, in meters, from the 95% CI around that point to the 95% CI around any point in the list of points
 
 def calDistanceToPoint(point, points):
     maxDistance = 0
     for i in range(0, len(points)):
-        dist = calDistance(point, points[i])
+        dist = calDistance(point[2:4], points[i][2:4]) - point[4] - points[i][4]
         if dist > maxDistance:
             maxDistance = dist
     return maxDistance
@@ -68,6 +68,7 @@ def calDistanceToPoint(point, points):
 
 def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
     
+    # Infer activities
     i = 0
     while i < len(gpsTraces) - 1:
                
@@ -77,10 +78,10 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
 
         # Create a collection of successive points that lie within a circle of radius maxRadius meters
         j = i + 1
-        points = [gpsTraces[i][2:4]]
+        points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
-                and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius):
-            points.append(gpsTraces[j][2:4])
+                and calDistanceToPoint(gpsTraces[j], points) < maxRadius):
+            points.append(gpsTraces[j])
             j += 1
 
         # Check for black points
@@ -89,7 +90,7 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
             k += 1
         if k > j:
             if k < len(gpsTraces):
-                if calDistanceToPoint(gpsTraces[k][2:4], points) < maxRadius:
+                if calDistanceToPoint(gpsTraces[k], points) < maxRadius:
                     j = k + 1
 
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
@@ -102,13 +103,12 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 activities.append([i, j-1])
             i = j - 1
         else:
-            #if len(activities) > 0:
-            #    activities[-1][-1] = j-1
             i += 1
 
         if k == len(gpsTraces):
             break
 
+    # Impute trips
     numActivities = len(activities)
     if numActivities != 0:
         
@@ -186,7 +186,7 @@ dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/'
 dirPath += 'Travel-Diary/Data/Google Play API/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 100, 120000, 100
+minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 200
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 for dataFile in dataFiles:
     gpsTraces = []
