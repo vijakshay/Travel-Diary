@@ -64,18 +64,32 @@ def calDistanceToPoint(point, points):
 # a circle of radius maxRadius meters. The minimum interval between successive activites must be at least 
 # minInterval milliseconds, for them to be recorded as separate activities.
 
-def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval):
+def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
     
     i = 0
     while i < len(gpsTraces) - 1:
-        
+               
+        # Skip over any black points at the beginning 
+        while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= gpsAccuracyThreshold:
+            i += 1
+
         # Create a collection of successive points that lie within a circle of radius maxRadius meters
         j = i + 1
-        points = [gpsTraces[i][2:4]]  
-        while j < len(gpsTraces) and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius:
+        points = [gpsTraces[i][2:4]]
+        while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
+                and calDistanceToPoint(gpsTraces[j][2:4], points) < maxRadius):
             points.append(gpsTraces[j][2:4])
             j += 1
         
+        # Check for black points
+        k = j 
+        while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
+            k += 1
+        if k > j:
+            if k < len(gpsTraces):
+                if calDistanceToPoint(gpsTraces[k][2:4], points) < maxRadius:
+                    j = k + 1
+                            
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -87,6 +101,9 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
             i = j - 1
         else:
             i += 1
+
+        if k == len(gpsTraces):
+            break
 
     numActivities = len(activities)
     if numActivities != 0:
@@ -101,8 +118,12 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
                 trips.append([activities[i][-1], activities[i+1][0]])
         
         # Check if the GPS log ends with a trip
-        if activities[-1][-1] < len(gpsTraces)-1:
-            trips.append([activities[-1][-1], len(gpsTraces)-1])
+        if activities[-1][-1] < len(gpsTraces) - 1:
+            i = len(gpsTraces) - 1
+            while i > activities[-1][-1] and gpsTraces[i][4] > gpsAccuracyThreshold:
+                i -= 1
+            if i != activities[-1][-1]:            
+                trips.append([activities[-1][-1], i])
     else:
         trips.append([0, len(gpsTraces)-1])
         
@@ -117,54 +138,82 @@ def timePoint(gpsTraces, j):
    return (gpsTraces[j+1][1] - gpsTraces[j][1]) / 1000.0
 
 def speedPoint(gpsTraces, j):
-  return 2.23694 * (float(lengthPoint(gpsTraces,j))/timePoint(gpsTraces,j))
+  return 2.23694 * (float(lengthPoint(gpsTraces, j)) / timePoint(gpsTraces, j))
 
 def accelerationPoint(gpsTraces, j):
-  return (2.23694/60) * (float(lengthPoint(gpsTraces,j))/(timePoint(gpsTraces,j) ** 2))
-  
-  
+  return abs(speedPoint(gpsTraces, j + 1) - speedPoint(gpsTraces, j)) / (timePoint(gpsTraces,j) / 3600.0)
 
 
-def inferMode(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
+# Method that that takes as input the list containing GPS data, called gpsTraces, and a tuple containing the 
+# indices of the start and end point of a trip, called trip.
+#
+# The trips are decomposed into their mode chains. 
 
-    # Step 1: Separate walk points from non-walk points
-    walkDummy = []
-    for i in range(0, len(gpsTraces) - 1):
+def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
+
+    # Step 1: Label GPS points as walk points or non-walk points    
+    walkDummy = {}
+    for i in range(trip[0], trip[1]):
         if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
-	    walkDummy.append(1); 
+	    walkDummy[i] = 1
 	else:
-	    walkDummy.append(0)
-    print walkDummy
+	    walkDummy[i] = 0
     
-    # Step 2: Combine points into walk and non-walk segments
-    segments, numSegments, currentPoint = [], 0, 0
-    while currentPoint < len(gpsTraces) - 1:
-        segments.append([currentPoint])
-        while currentPoint < len(gpsTraces) - 2 and walkDummy[currentPoint] == walkDummy[currentPoint + 1]:
-            currentPoint += 1
-        if currentPoint < len(gpsTraces) - 1:
-            currentPoint += 1
-        segments[numSegments].append(currentPoint)
-        distance = round(calDistance(gpsTraces[segments[-1][0]][2:4], gpsTraces[segments[-1][1]][2:4]), 0)
-        time = round((gpsTraces[segments[-1][1]][1] - gpsTraces[segments[-1][0]][1]) / 1000, 0)
-        speed = round((2.23694 * distance)/time, 0)
-        acceleration = round((2.23694 / 60) * (distance/(time ** 2)), 2)
-        segments[numSegments].append(distance)
-        segments[numSegments].append(time)
-        segments[numSegments].append(speed)
-        segments[numSegments].append(acceleration)
-        numSegments += 1
-    print segments
-    print '\n'
-    '''
-    # Step 3: Check if segment length exceeds minSegmentDuration seconds
-    tempSegments, numSegments = [], 0
-    for i in range(0, len(segments) - 1):
-        tempSegments.append(segments[i])
-        if numSegments > 0 and gpsTraces[segment[1]][1] - gpsTraces[segment[0]][1]) < minSegmentDuration:
-            tempSegments[numSegments][1] = segment[1]
-    '''
+    # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points recorded over
+    # a duration that exceeds minSegmentDuration milliseconds
+    modeChains = []
+    beginSegment = trip[0]
+    currentPoint = trip[0] + 1
+    while currentPoint < trip[1]:
+        if walkDummy[currentPoint] != walkDummy[beginSegment]:
+            if gpsTraces[currentPoint][1] - gpsTraces[beginSegment][1] > minSegmentDuration:
+                modeChains.append([beginSegment, currentPoint])
+                if walkDummy[beginSegment] == 0:
+                    modeChains[-1].append(0)
+                else:
+                    modeChains[-1].append(1)                
+            beginSegment = currentPoint
+        currentPoint += 1
+    if gpsTraces[currentPoint][1] - gpsTraces[beginSegment][1] > minSegmentDuration:
+        modeChains.append([beginSegment, currentPoint])
+        if walkDummy[beginSegment] == 0:
+            modeChains[-1].append(0)
+        else:
+            modeChains[-1].append(1)                
+    
+    # Step 3: Absorb unidentified segments into the nearest identified segment in the forward direction
+    if len(modeChains) > 0:
+        modeChains[0][0] = trip[0]   
+        currentPoint = modeChains[0][1]
+        i = 1
+        while i < len(modeChains) and currentPoint < trip[1]:
+            modeChains[i][0] = currentPoint
+            currentPoint = modeChains[i][1]
+            i += 1
+        modeChains[-1][1] = trip[1]
+    else:
+        modeChains.append(trip)
+        distance, time = 0, 0
+        for i in range(trip[0], trip[1]):
+            distance += lengthPoint(gpsTraces, i)
+            time += timePoint(gpsTraces, i)
+        averageSpeed = 2.23694 * float(distance) / time
+        if averageSpeed < maxWalkSpeed:
+            modeChains[-1].append(1)
+        else:
+            modeChains[-1].append(0)           
 
+    # Step 4: Combine consecutive walk segments and consecutive non-walk segments
+    newModeChains, i = [modeChains[0]], 0
+    for j in range(1, len(modeChains)):           
+        if newModeChains[i][-1] == modeChains[j][-1]:
+            newModeChains[i][1] = modeChains[j][1]
+        else:
+            i += 1
+            newModeChains.append(modeChains[j])
+    
+    return newModeChains
+    
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
 # format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
@@ -184,21 +233,30 @@ def inferMode(gpsTraces, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Base directory where you clone the repository, change as appropriate
-filePath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
+dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
 
 # Shouldn't have to change anything below this for the code to run
-filePath += 'Travel-Diary/Data/Google Play API/5107250619_Vij_01032014.txt'
-gpsTraces = []
-parseCSV(filePath, gpsTraces)
+dirPath += 'Travel-Diary/Data/Google Play API/'
+dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-trips, activities = [], []
-minDuration, maxRadius, minInterval = 180000, 50, 120000
-inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval)
-print trips, activities
+timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 
-'''
-maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 4, 0.2237, 120
-for trip in trips:
-    print trip
-    inferMode(gpsTraces[trip[0]:trip[1]], maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
-'''
+for dataFile in dataFiles:
+    gpsTraces = []
+    filePath = dirPath + dataFile
+    try:
+        print dataFile + '\n'
+        parseCSV(filePath, gpsTraces)
+        trips, activities = [], []
+        minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 100, 120000, 100
+        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
+        
+        modeChains = []
+        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 5.60, 1620, 90000
+        for trip in trips:
+            print trip
+            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
+            print modeChains
+            print
+    except:
+        pass
