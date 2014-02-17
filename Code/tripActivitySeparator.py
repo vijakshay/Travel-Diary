@@ -38,8 +38,8 @@ def calDistance(point1, point2):
     return d
 
 
-# Function that takes as input the GPS location of a point and a list of points, where each element of the 
-# list is a tuple containing the latitutde and longitude for that point. The function outputs the maximum 
+# Function that takes as input a point and a list of points, where a point is itself a list containing 
+# the elements in the row in the input file corresponding to that point. The function outputs the maximum 
 # distance, in meters, from the 95% CI around that point to the 95% CI around any point in the list of points
 
 def calDistanceToPoint(point, points):
@@ -180,10 +180,10 @@ def calInfAccuray(trips, activities, gpsTraces):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Base directory where you clone the repository, change as appropriate
-dirPath = '/Users/biogeme/Desktop/Vij/Academics/Post-Doc/' 
+dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
 
 # Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Google Play API/'
+dirPath += 'Travel-Diary/Data/Temp/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
 minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 200

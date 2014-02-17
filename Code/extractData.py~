@@ -115,11 +115,10 @@ def epochGroundTime(dateTime):
     return epochTime
 
 
-# Procedure that takes as input strings deonting the tester name, test phone number, date, difference between
-# local time zone and UTC time, and the GPS file path name. Output is a list of lists containing GPS data
-# for that tester, phone and day.
+# Procedure that takes as input a string deonting the date, difference between local time zone and UTC time, 
+# and the GPS file path name. Output is a list of lists containing GPS data for that day.
 
-def getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
+def getGPSData(date, gmtConversion, gpsFilePath):
 
     startTime, endTime = epochTime(date, gmtConversion)
     gpsData = []
@@ -127,7 +126,7 @@ def getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
         for row in csv.reader(csvfile, delimiter = '\t'):
             try:
                 if int(row[1]) >= startTime and int(row[1]) <= endTime:
-                    gpsData.append(row[:-1])
+                    gpsData.append(row)
             except:
                 pass
     gpsData = sorted(gpsData, key = lambda x: int(x[1]))
@@ -215,19 +214,32 @@ def mergeData(gpsData, groundData):
 # be exported manually as a csv and saved to the local hard drive as well.
 
 # Personal details, change as appropriate
+<<<<<<< HEAD
 testerName = 'Andrew'       # Should be the same as that listed in the ODK form
 phoneNum = '5107259365'  # 10-digit number with no brackets, hyphens or spaces
-date = '02072014'        # MMDDYYYY format of day for which you wish to extract data
+date = '02162014'        # MMDDYYYY format of day for which you wish to extract data
+=======
+testerName = 'Vij'       # Should be the same as that listed in the ODK form
+phoneNum = '5107250744'  # 10-digit number with no brackets, hyphens or spaces
+date = '02032014'        # MMDDYYYY format of day for which you wish to extract data
+>>>>>>> 9d55400f11301fee1a564369855fcc5e3858a851
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 
 # Base directory where you clone the repository, change as appropriate
-filePath = '/Users/daddy30000/'
+filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 
 # Directory where you saved the file with GPS traces, change as appropriate
+<<<<<<< HEAD
 gpsFilePath = '/Users/daddy30000/Dropbox/Research/13_14_Project_Files/13_Tracking_Apps/extract/gaeandroid.txt'
 
 # Directory where you've saved the ODK file with just the ground truth, change as appropriate
 groundFilePath = '/Users/daddy30000/Dropbox/Research/13_14_Project_Files/13_Tracking_Apps/extract/14_02_15_Travel_and_Activity_Diary_results.csv'
+=======
+gpsFilePath = filePath + 'Travel-Diary/Data/Ground Truth/' + 'gaeandroid.txt'
+
+# Directory where you've saved the ODK file with just the ground truth, change as appropriate
+groundFilePath = filePath + 'Travel-Diary/Data/Ground Truth/' + 'Travel_and_Activity_Diary_results.csv'
+>>>>>>> 9d55400f11301fee1a564369855fcc5e3858a851
 
 
 # DON'T CHANGE ANYTHING BELOW THIS!
@@ -235,7 +247,7 @@ groundFilePath = '/Users/daddy30000/Dropbox/Research/13_14_Project_Files/13_Trac
 # Directory where the final data file will be saved, no need to change this
 dataFilePath = filePath + 'Travel-Diary/Data/Google Play API/' + phoneNum + '_' + testerName + '_' + date + '.txt'
 
-gpsData = getGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath)
+gpsData = getGPSData(date, gmtConversion, gpsFilePath)
 groundData = getGroundData(testerName, phoneNum, date, gmtConversion, groundFilePath)
 data = mergeData(gpsData, groundData)
 
