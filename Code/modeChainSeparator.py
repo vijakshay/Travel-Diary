@@ -153,70 +153,101 @@ def accelerationPoint(gpsTraces, j):
 #
 # The trips are decomposed into their mode chains. 
 
-def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration):
+def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
+        minSegmentDuration, minSegmentLength, gpsAccuracyThreshold):
 
     # Step 1: Label GPS points as walk points or non-walk points    
     walkDummy = {}
-    for i in range(trip[0], trip[1]):
-        if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
-	    walkDummy[i] = 1
+    i = trip[0]
+    while i < trip[1]:
+        start, end = i, i
+        while end < trip[1] and (gpsTraces[end][4] > gpsAccuracyThreshold 
+                or gpsTraces[end + 1][4] > gpsAccuracyThreshold
+                or gpsTraces[end + 2][4] > gpsAccuracyThreshold):
+            end += 1
+        if start == end:
+            if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
+                walkDummy[i] = 1
+	    else:
+	       walkDummy[i] = 0
+	    i += 1            
 	else:
-	    walkDummy[i] = 0
+	    distance = calDistance(gpsTraces[start][2:4], gpsTraces[end][2:4])
+	    time = (gpsTraces[end][1] - gpsTraces[start][1]) / 1000.0
+	    speed = 2.23694 * (float(distance) / time)
+	    dummy = int(speed < maxWalkSpeed)
+            while i < end:
+                walkDummy[i] = dummy
+                i += 1
+    print walkDummy 
+    print
     
-    # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points recorded over
-    # a duration that exceeds minSegmentDuration milliseconds
+    # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points 
     modeChains = []
     beginSegment = trip[0]
     currentPoint = trip[0] + 1
     while currentPoint < trip[1]:
         if walkDummy[currentPoint] != walkDummy[beginSegment]:
-            if gpsTraces[currentPoint][1] - gpsTraces[beginSegment][1] > minSegmentDuration:
-                modeChains.append([beginSegment, currentPoint])
-                if walkDummy[beginSegment] == 0:
-                    modeChains[-1].append(0)
-                else:
-                    modeChains[-1].append(1)                
+            modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
             beginSegment = currentPoint
         currentPoint += 1
-    if gpsTraces[currentPoint][1] - gpsTraces[beginSegment][1] > minSegmentDuration:
-        modeChains.append([beginSegment, currentPoint])
-        if walkDummy[beginSegment] == 0:
-            modeChains[-1].append(0)
-        else:
-            modeChains[-1].append(1)                
-    
-    # Step 3: Absorb unidentified segments into the nearest identified segment in the forward direction
-    if len(modeChains) > 0:
-        modeChains[0][0] = trip[0]   
-        currentPoint = modeChains[0][1]
-        i = 1
-        while i < len(modeChains) and currentPoint < trip[1]:
-            modeChains[i][0] = currentPoint
-            currentPoint = modeChains[i][1]
-            i += 1
-        modeChains[-1][1] = trip[1]
-    else:
-        modeChains.append(trip)
-        distance, time = 0, 0
-        for i in range(trip[0], trip[1]):
-            distance += lengthPoint(gpsTraces, i)
-            time += timePoint(gpsTraces, i)
-        averageSpeed = 2.23694 * float(distance) / time
-        if averageSpeed < maxWalkSpeed:
-            modeChains[-1].append(1)
-        else:
-            modeChains[-1].append(0)           
+    modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
+    print modeChains
+    print
 
-    # Step 4: Combine consecutive walk segments and consecutive non-walk segments
-    newModeChains, i = [modeChains[0]], 0
-    for j in range(1, len(modeChains)):           
-        if newModeChains[i][-1] == modeChains[j][-1]:
-            newModeChains[i][1] = modeChains[j][1]
+    # Step 3: If the time span of a segment is greater than minSegmentDuration milliseconds, label it 
+    # as certain. If it is less than minSegmentDuration milliseconds, and its backward segment is certain,
+    # merge it with the backward segment. If no certain backward segment exists, label the segment as 
+    # uncertain, and save it as an independent segment. 
+    newModeChains = []
+    for i in range(0, len(modeChains)):
+        if gpsTraces[modeChains[i][1]][1] - gpsTraces[modeChains[i][0]][1] >= minSegmentDuration:
+            modeChains[i].append(1)
+            newModeChains.append(modeChains[i])
+        elif newModeChains and newModeChains[-1][-1] == 1:
+            newModeChains[-1][1] = modeChains[i][1]
         else:
-            i += 1
-            newModeChains.append(modeChains[j])
-    
-    return newModeChains
+            modeChains[i].append(0)
+            newModeChains.append(modeChains[i])
+    modeChains = newModeChains
+    print modeChains
+    print
+
+    # Step 4: Merge consecutive uncertain segments into a single certain segment. Calculate average
+    # speed over segment and compare it against maxWalkSpeed to determine whether walk or non-walk.
+    # Check if this segment exceeds minSegmentDuration milliseconds. If it doesn't, and there exists 
+    # a certain forward segment, merge the new segment with this forward segment. 
+    newModeChains, i = [modeChains[0][0:-1]], 1
+    while i < len(modeChains) and modeChains[i][-1] == 0:
+        i += 1
+    if i > 1:
+        newModeChains[0][1] = modeChains[i-1][1]
+        distance = calDistance(gpsTraces[newModeChains[0][0]][2:4], gpsTraces[newModeChains[0][1]][2:4])
+        time = (gpsTraces[newModeChains[0][1]][1] - gpsTraces[newModeChains[0][0]][1]) / 1000.0
+        speed = 2.23694 * (float(distance) / time)
+        newModeChains[0][-1] = int(speed < maxWalkSpeed)
+    if i < len(modeChains) and modeChains[0][-1] == 0:
+        time = (gpsTraces[newModeChains[0][1]][1] - gpsTraces[newModeChains[0][0]][1])
+        if time < minSegmentDuration:
+            modeChains[i][0] = trip[0]
+            newModeChains = []
+    while i < len(modeChains):
+        newModeChains.append(modeChains[i][:-1])
+        i += 1
+    modeChains = newModeChains
+    print modeChains
+    print
+        
+    # Step 5: Merge consecutive walk segments and consecutive non-walk segments
+    newModeChains = [modeChains[0]]
+    for i in range(1, len(modeChains)):
+        if modeChains[i][2] == newModeChains[-1][2]:
+            newModeChains[-1][1] = modeChains[i][1]
+        else:
+            newModeChains.append(modeChains[i])
+    modeChains = newModeChains    
+
+    return modeChains
     
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
@@ -240,7 +271,7 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minSegmen
 dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
 
 # Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Temp/'
+dirPath += 'Travel-Diary/Data/Google Play API/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
@@ -256,10 +287,12 @@ for dataFile in dataFiles:
         inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
         
         modeChains = []
-        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration = 5.60, 1620, 180000
+        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
         for trip in trips:
             print trip
-            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, minSegmentDuration)
+            print
+            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
+                    minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
             print modeChains
             print
     except:
