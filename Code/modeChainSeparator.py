@@ -179,8 +179,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             while i < end:
                 walkDummy[i] = dummy
                 i += 1
-    print walkDummy 
-    print
+    #print walkDummy 
+    #print
     
     # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points 
     modeChains = []
@@ -192,8 +192,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             beginSegment = currentPoint
         currentPoint += 1
     modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
-    print modeChains
-    print
+    #print modeChains
+    #print
 
     # Step 3: If the time span of a segment is greater than minSegmentDuration milliseconds, label it 
     # as certain. If it is less than minSegmentDuration milliseconds, and its backward segment is certain,
@@ -210,8 +210,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             modeChains[i].append(0)
             newModeChains.append(modeChains[i])
     modeChains = newModeChains
-    print modeChains
-    print
+    #print modeChains
+    #print
 
     # Step 4: Merge consecutive uncertain segments into a single certain segment. Calculate average
     # speed over segment and compare it against maxWalkSpeed to determine whether walk or non-walk.
@@ -235,8 +235,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
         newModeChains.append(modeChains[i][:-1])
         i += 1
     modeChains = newModeChains
-    print modeChains
-    print
+    #print modeChains
+    #print
         
     # Step 5: Merge consecutive walk segments and consecutive non-walk segments
     newModeChains = [modeChains[0]]
@@ -249,6 +249,26 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
 
     return modeChains
     
+
+# Method that takes as input the GPS data, and the inferred mode chains, and returns the total time elapsed 
+# and distance covered over the dataset inferred as trips, and the time and distance correctly inferred
+# as either a walk segment or non-walk segment
+
+def calInfAccuray(modeChains, gpsTraces):
+    
+    timeTotal, timeInferred, distTotal, distInferred = 0, 0, 0, 0
+    for modeChain in modeChains:
+        for i in range(modeChain[0], modeChain[1]):
+            timeTotal += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
+            distTotal += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)            
+            
+            if ((modeChain[-1] == 1 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk') or
+                    (modeChain[-1] == 0 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] != 'Walk')):
+                timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
+                distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
+        
+    return timeTotal, timeInferred, distTotal, distInferred 
+
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
 # format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
@@ -271,7 +291,7 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
 dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
 
 # Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Google Play API/'
+dirPath += 'Travel-Diary/Data/Temp/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
@@ -285,6 +305,8 @@ for dataFile in dataFiles:
         trips, activities = [], []
         minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 200
         inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
+        print trips, activities
+        print
         
         modeChains = []
         maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
@@ -295,5 +317,13 @@ for dataFile in dataFiles:
                     minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
             print modeChains
             print
+            timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(modeChains, gpsTraces)            
+            timeTotTrips += timeTotal
+            timeInfTrips += timeInferred
+            distTotTrips += distTotal
+            distInfTrips += distInferred
     except:
         pass
+
+print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
+print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
