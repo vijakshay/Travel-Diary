@@ -64,7 +64,7 @@ def mergeData(gpsData, groundData):
 
     i, lastEvent = 0, groundData[-1][3:]
     while groundData:
-        while gpsData[i][9] < groundData[0][1]:
+        while gpsData[i][9] != groundData[0][1]:
             for element in groundData[0][3:]:
                 gpsData[i].append(element)
             i += 1
@@ -91,7 +91,7 @@ testers = [{'name': 'Andrew', 'ph': '5107259365'},
 # Details of data to be merged
 
 testerName = 'Sreeta'        # Should be the same as that listed in the ODK form
-date = '03032014'            # MMDDYYYY format of day for which you wish to extract data
+date = '03052014'            # MMDDYYYY format of day for which you wish to extract data
 
 # Base directory where you clone the repository, change as appropriate
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
