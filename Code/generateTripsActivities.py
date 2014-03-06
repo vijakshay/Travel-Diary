@@ -2,8 +2,7 @@ import urllib2
 import csv
 import math
 import numpy
-from os import listdir, remove
-from os.path import isfile, join
+from os import remove
 
 
 # Check if a given year is a leap year or not
@@ -440,7 +439,7 @@ def writeFile(data, filePath):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Day for which you wish to extract trips and activities
-date = '03042014'        # MMDDYYYY format of day for which you wish to extract data
+date = '03052014'        # MMDDYYYY format of day for which you wish to extract data
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
 
@@ -449,8 +448,8 @@ testers = [{'name': 'Andrew', 'ph': '5107259365'},
            {'name': 'Caroline', 'ph': '5107250774'},
            {'name': 'Rory', 'ph': '5107250619'},
            {'name': 'Sreeta', 'ph': '5107250786'},
-           {'name': 'Vij', 'ph': '5107250744'},
-           {'name': 'Ziheng', 'ph': '5107250740'}]
+           {'name': 'VijZiheng', 'ph': '5107250744'},
+           {'name': 'ZihengVij', 'ph': '5107250740'}]
 
 # File path where the GitHub repository is located
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
@@ -469,8 +468,8 @@ for tester in testers:
                      'date': date,
                      'ph': tester['ph']})            
         rawDataFileName = tester['ph'] + '_' + tester['name'] + '_' + date + '.txt'
-        #gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
-        gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
+        gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
+        #gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
         daySchedule, event = [], {}
         minDuration, maxRadius, minSeparation, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 100, 300000, 200
         maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
