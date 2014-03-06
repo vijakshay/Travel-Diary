@@ -1,15 +1,126 @@
+import urllib2 
 import csv
 import math
 import numpy
-from os import listdir
+from os import listdir, remove
 from os.path import isfile, join
+
+
+# Check if a given year is a leap year or not
+
+def isLeapYear(year):
+    if year % 400 == 0:
+        return True
+    if year % 100 == 0:
+        return False
+    if year % 4 == 0:
+        return True
+    return False
+
+
+# Calculate days in a month for a given year
+
+def daysInMonth(year, month):
+    if month in (1, 3, 5, 7, 8, 10, 12):
+        return 31
+    elif month == 2:
+        if isLeapYear(year):
+            return 29
+        return 28
+    return 30
+
+
+# Calculate next day as per the Gregorian calendar
+
+def nextDay(year, month, day):
+    if day < daysInMonth(year, month):
+        return year, month, day + 1
+    else:
+        if month == 12:
+            return year + 1, 1, 1
+        else:
+            return year, month + 1, 1
+        
+
+# Returns True if year1-month1-day1 is after year2-month2-day2.  Otherwise, returns False.
+
+def dateIsAfter(year1, month1, day1, year2, month2, day2):
+    if year1 > year2:
+        return True
+    if year1 == year2:
+        if month1 > month2:
+            return True
+        if month1 == month2:
+            return day1 > day2
+    return False        
+
+
+# Returns the starting and ending epoch Time in milliseconds for a given day, as per PST. 
+# Input must be a 8-character string containing a valid date in MMDDYYYY format.
+
+def epochTime(date, gmtConversion):
+
+    year1 = 1970
+    month1 = 1
+    day1 = 1
+
+    year2 = int(date[4:8])
+    month2 = int(date[0:2])
+    day2 = int(date[2:4])
+    
+    days = 0
+    while dateIsAfter(year2, month2, day2, year1, month1, day1):
+        days += 1
+        (year1, month1, day1) = nextDay(year1, month1, day1)
+    
+    startTime = ((days * 24) - gmtConversion) * 3600 * 1000
+    endTime = startTime + (24 * 3600 * 1000)
+    return startTime, endTime
+
+
+# Procedure that takes as input strings deonting the tester name, test phone number, date, difference between 
+# local time zone and UTC time, and the GPS file path name. Output is a list of lists containing GPS data 
+# for that tester, phone and day.
+
+def getNewGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
+
+    url = 'http://' + phoneNum + 'gp.appspot.com/gaeandroid?query=1'
+    data = urllib2.urlopen(url)
+    
+    localFile = open(gpsFilePath, 'w')
+    localFile.write(data.read())
+    localFile.close()
+
+    startTime, endTime = epochTime(date, gmtConversion)
+
+    gpsData = []
+    with open(gpsFilePath, 'rU') as csvfile:
+        for row in csv.reader(csvfile, delimiter = '\t'):
+            try:
+                if int(row[1]) >= startTime and int(row[1]) <= endTime:
+                    tList = []
+                    for element in row:
+                        try:
+                            tList.append(float(element))    
+                        except:
+                            tList.append(element)    
+                    gpsData.append(tList)
+            except:
+                pass            
+    gpsData = sorted(gpsData, key = lambda x: int(x[1]))
+    remove(gpsFilePath)
+    with open(gpsFilePath, "wb") as f:
+        writer = csv.writer(f, delimiter = '\t')
+        writer.writerows(gpsData)
+    return gpsData
 
 
 # Procedure that takes as input a tab-delimited txt file, and stores the data as a list, 
 # where each element of the list is a list itself that corresponds to a row in the file,
 # and each element of that list corresponds to an entry in that row. 
 
-def parseCSV(filePath, data):
+def getExistingGPSData(filePath):
+    data = []
     with open(filePath, 'rU') as csvfile:
         for row in csv.reader(csvfile, delimiter = '\t'):
             tList = []
@@ -19,6 +130,7 @@ def parseCSV(filePath, data):
                 except:
                     tList.append(element)    
             data.append(tList)
+    return data
 
 
 # Function that uses the haversine formula to calculate the 'great-circle' distance in meters
@@ -177,8 +289,8 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
         trips.append([0, len(gpsTraces)-1])
     
     return trips, newActivities, holes
-
         
+
 # Functions that calculate the four features of a GPS point: distance to next point (in meters), 
 # time interval (seconds), speed (mph) and acceleration (mph2)
 
@@ -297,25 +409,18 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
     return modeChains
     
 
-# Method that takes as input the GPS data, and the inferred mode chains, and returns the total time elapsed 
-# and distance covered over the dataset inferred as trips, and the time and distance correctly inferred
-# as either a walk segment or non-walk segment
-
-def calInfAccuray(modeChains, gpsTraces):
+def writeFile(data, filePath):
     
-    timeTotal, timeInferred, distTotal, distInferred = 0, 0, 0, 0
-    for modeChain in modeChains:
-        for i in range(modeChain[0], modeChain[1]):
-            timeTotal += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-            distTotal += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)            
-            
-            if ((modeChain[-1] == 1 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk') or
-                    (modeChain[-1] == 0 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] != 'Walk')):
-                timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-                distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
-        
-    return timeTotal, timeInferred, distTotal, distInferred 
-
+    for tester in data:
+        fileName = filePath + tester['ph'] + '_' + tester['tester'] + '_' + tester['date'] + '.csv'
+        csvout = csv.writer(open(fileName, "wb"))
+        csvout.writerow(("Start Time", "End Time", "Type", "Comments"))
+        try:
+            for event in tester['Day Schedule']:
+                csvout.writerow((event['Start Time'], event['End Time'], event['Type']))
+        except:
+            pass
+    
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
 # format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
@@ -334,42 +439,81 @@ def calInfAccuray(modeChains, gpsTraces):
 #
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
-# Base directory where you clone the repository, change as appropriate
-dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
+# Day for which you wish to extract trips and activities
+date = '03042014'        # MMDDYYYY format of day for which you wish to extract data
+gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
+gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
 
-# Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Temp/'
-dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
+# Tester personal details, change as appropriate
+testers = [{'name': 'Andrew', 'ph': '5107259365'}, 
+           {'name': 'Caroline', 'ph': '5107250774'},
+           {'name': 'Rory', 'ph': '5107250619'},
+           {'name': 'Sreeta', 'ph': '5107250786'},
+           {'name': 'Vij', 'ph': '5107250744'},
+           {'name': 'Ziheng', 'ph': '5107250740'}]
 
-timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
+# File path where the GitHub repository is located
+filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 
-for dataFile in dataFiles:
-    gpsTraces = []
-    filePath = dirPath + dataFile
+# File path where you wish to store the ground truth
+groundTruthPath = filePath + 'Travel-Diary/Data/Inferred Truth/' 
+
+# File path where you wish to store the raw GPS data
+rawDataPath = filePath + 'Travel-Diary/Data/Raw Data/' 
+
+# Don't change anything below this
+gpsTraces, data = [], []
+for tester in testers:
     try:
-        print dataFile + '\n'
-        parseCSV(filePath, gpsTraces)
+        data.append({'tester': tester['name'],
+                     'date': date,
+                     'ph': tester['ph']})            
+        rawDataFileName = tester['ph'] + '_' + tester['name'] + '_' + date + '.txt'
+        #gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
+        gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
+        daySchedule, event = [], {}
         minDuration, maxRadius, minSeparation, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 100, 300000, 200
+        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
         trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, 
                 minSeparation, minSamplingRate, gpsAccuracyThreshold)
-        print trips, activities, holes
-        print
-        
-        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
-        for trip in trips:
-            print trip
-            print
-            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
-                    minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
-            print modeChains
-            print
-            #timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(modeChains, gpsTraces)            
-            #timeTotTrips += timeTotal
-            #timeInfTrips += timeInferred
-            #distTotTrips += distTotal
-            #distInfTrips += distInferred
+        while trips or activities or holes:
+            if ((trips and activities and holes and trips[0][0] < activities[0][0] and trips[0][0] < holes[0][0]) 
+                    or (trips and not activities and holes and trips[0][0] < holes[0][0])
+                    or (trips and activities and not holes and trips[0][0] < activities[0][0])
+                    or (trips and not activities and not holes)):
+                modeChain = inferModeChain(gpsTraces, trips[0], maxWalkSpeed, maxWalkAcceleration, 
+                        minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
+                for mode in modeChain:
+                    event = {'Start Time': gpsTraces[mode[0]][9],
+                             'End Time': gpsTraces[mode[1]][9]}
+                    if mode[-1] == 0:
+                        event['Type'] = 'Non-walk trip'
+                    else:
+                        event['Type'] = 'Walk trip'
+                    daySchedule.append(event)
+                    event = {}
+                trips = trips[1:]
+            elif ((activities and trips and holes and activities[0][0] < trips[0][0] and activities[0][0] < holes[0][0]) 
+                    or (activities and not trips and holes and activities[0][0] < holes[0][0])
+                    or (activities and trips and not holes and activities[0][0] < trips[0][0])
+                    or (activities and not trips and not holes)):
+                event = {'Start Time': gpsTraces[activities[0][0]][9],
+                         'End Time': gpsTraces[activities[0][1]][9],
+                         'Type': 'Activity'}
+                activities = activities[1:]
+                daySchedule.append(event)
+                event = {}
+            elif holes:
+                event = {'Start Time': gpsTraces[holes[0][0]][9],
+                         'End Time': gpsTraces[holes[0][1]][9],
+                         'Type': 'Hole'}
+                holes = holes[1:]
+                daySchedule.append(event)
+                event = {}
+                
+        #print daySchedule
+        data[-1]['Day Schedule'] = daySchedule
     except:
         pass
-
-#print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
-#print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
+    
+writeFile(data, groundTruthPath)

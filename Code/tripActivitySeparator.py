@@ -1,5 +1,6 @@
 import csv
 import math
+import numpy
 from os import listdir
 from os.path import isfile, join
 
@@ -51,7 +52,43 @@ def calDistanceToPoint(point, points):
     return maxDistance
     
 
-# Procedure that takes as input the list containing GPS data, called gpsTraces, and two empty lists, 
+# Function that takes as input two lists of points, where a point is itself a list containing 
+# the elements in the row in the input file corresponding to that point. The function outputs the 
+# distance, in meters, between the median points in the two lists
+
+def calDistanceBetweenPoints(points1, points2):
+    latLon1, latLon2 = numpy.zeros(shape = (len(points1), 2)), numpy.zeros(shape = (len(points2), 2))
+    for i in range(0, len(points1)):
+        latLon1[i, 0] = points1[i][2]
+        latLon1[i, 1] = points1[i][3]
+    for i in range(0, len(points2)):
+        latLon2[i, 0] = points2[i][2]
+        latLon2[i, 1] = points2[i][3]
+    point1 = [numpy.median(latLon1[:, 0]), numpy.median(latLon1[:, 1])]
+    point2 = [numpy.median(latLon2[:, 0]), numpy.median(latLon2[:, 1])]    
+    return calDistance(point1, point2)
+
+
+# Procedure that takes as input the start and end points to an event, the list of events and holes,
+# the list comprising the raw GPS data and the threshold for labelling a gap in the data a hole,
+# and infers holes in the data and splits the event accordingly into multiple events
+
+def inferHoles(eventStart, eventEnd, events, holes, gpsTraces, minSamplingRate):
+    j = eventStart + 1
+    while j <= eventEnd:
+        while (j < eventEnd and 
+                gpsTraces[j][1] - gpsTraces[j - 1][1] < minSamplingRate):
+            j += 1
+        if gpsTraces[j][1] - gpsTraces[j - 1][1] >= minSamplingRate:
+            holes.append([j - 1, j])
+            if j - 1 > eventStart:
+                events.append([eventStart, j - 1])
+        else:
+            events.append([eventStart, j])
+        eventStart, j = j, j + 1
+    
+    
+# Method that takes as input the list containing GPS data, called gpsTraces, and two empty lists, 
 # called trips and activities. 
 #
 # Each element of trips is a tuple and corresponds to a particular trip. The elements of the tuple are the 
@@ -66,7 +103,10 @@ def calDistanceToPoint(point, points):
 #
 # GPS traces whose accuracy is above gpsAccuracyThreshold meters are ignored.
 
-def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold):
+def inferTripActivity(gpsTraces, minDuration, maxRadius, 
+        minSeparation, minSamplingRate, gpsAccuracyThreshold):
+    
+    trips, activities, holes = [], [], []
     
     # Infer activities
     i = 0
@@ -76,10 +116,12 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
         while i < len(gpsTraces) - 1 and gpsTraces[i][4] >= gpsAccuracyThreshold:
             i += 1
 
-        # Create a collection of successive points that lie within a circle of radius maxRadius meters
+        # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
+        # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
+                and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
                 and calDistanceToPoint(gpsTraces[j], points) < maxRadius):
             points.append(gpsTraces[j])
             j += 1
@@ -96,8 +138,9 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
-            # Check if the activity is separated in time from previous activity by at least minInterval milliseconds
-            if len(activities) > 0 and gpsTraces[i][1] - gpsTraces[activities[-1][-1]][1] < minInterval:
+            # Check if the activity is separated in space from previous activity by at least minSeparation meters
+            if (len(activities) > 0 and calDistanceBetweenPoints(gpsTraces[activities[-1][0]:activities[-1][1]], 
+                    gpsTraces[i:j-1]) < minSeparation):                
                 activities[-1][-1] = j-1
             else:
                 activities.append([i, j-1])
@@ -108,29 +151,33 @@ def inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minI
         if k == len(gpsTraces):
             break
 
-    # Impute trips
-    numActivities = len(activities)
+    # Impute trips and identify holes in data
+    numActivities, newActivities = len(activities), []
     if numActivities != 0:
         
         # Check if the GPS log begins with a trip
         if activities[0][0] != 0:
-            trips.append([0, activities[0][0]])
+            inferHoles(0, activities[0][0], trips, holes, gpsTraces, minSamplingRate)
         
-        # Interpolate trips from activities
+        # Interpolate trips from activities and identify holes in activities
         if numActivities > 1:
             for i in range(0, numActivities - 1):            
-                trips.append([activities[i][-1], activities[i+1][0]])
+                inferHoles(activities[i][0], activities[i][1], newActivities, holes, gpsTraces, minSamplingRate)
+                inferHoles(activities[i][1], activities[i + 1][0], trips, holes, gpsTraces, minSamplingRate)
         
+        # Identify holes in the last activity
+        inferHoles(activities[-1][0], activities[-1][1], newActivities, holes, gpsTraces, minSamplingRate)
+
         # Check if the GPS log ends with a trip
-        if activities[-1][-1] < len(gpsTraces) - 1:
-            i = len(gpsTraces) - 1
-            while i > activities[-1][-1] and gpsTraces[i][4] > gpsAccuracyThreshold:
-                i -= 1
-            if i != activities[-1][-1]:            
-                trips.append([activities[-1][-1], i])
+        if activities[-1][-1] < len(gpsTraces) - 2:
+            inferHoles(activities[-1][1], len(gpsTraces) - 2, trips, holes, gpsTraces, minSamplingRate)
+    
+    # If the data comprises a single trip
     else:
         trips.append([0, len(gpsTraces)-1])
-        
+    
+    return trips, newActivities, holes
+
 
 # Method that takes as input the GPS data, and the inferred trips and activities, and returns the 
 # total time elapsed and distance covered over the dataset, and the time and distance correctly inferred
@@ -186,16 +233,16 @@ dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 dirPath += 'Travel-Diary/Data/Temp/'
 dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
 
-minDuration, maxRadius, minInterval, gpsAccuracyThreshold = 180000, 50, 120000, 200
+minDuration, maxRadius, minSeparation, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 100, 300000, 200
 timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
 for dataFile in dataFiles:
     gpsTraces = []
     filePath = dirPath + dataFile
     try:
         parseCSV(filePath, gpsTraces)
-        trips, activities = [], []
-        inferTripActivity(gpsTraces, trips, activities, minDuration, maxRadius, minInterval, gpsAccuracyThreshold)
-        print dataFile, trips, activities 
+        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, 
+                minSeparation, minSamplingRate, gpsAccuracyThreshold)
+        print dataFile, trips, activities, holes 
         timeTotal, timeInferred, distTotal, distInferred = calInfAccuray(trips, activities, gpsTraces)
         timeTotTrips += timeTotal
         timeInfTrips += timeInferred
@@ -204,5 +251,5 @@ for dataFile in dataFiles:
     except:
         pass
 
-print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
-print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
+#print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
+#print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
