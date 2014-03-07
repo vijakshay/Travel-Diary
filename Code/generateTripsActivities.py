@@ -214,8 +214,8 @@ def inferHoles(eventStart, eventEnd, events, holes, gpsTraces, minSamplingRate):
 #
 # GPS traces whose accuracy is above gpsAccuracyThreshold meters are ignored.
 
-def inferTripActivity(gpsTraces, minDuration, maxRadius, 
-        minSeparation, minSamplingRate, gpsAccuracyThreshold):
+def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
+        minSeparationTime, minSamplingRate, gpsAccuracyThreshold):
     
     trips, activities, holes = [], [], []
     
@@ -230,6 +230,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
         # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
         # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
+        
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
                 and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
@@ -249,16 +250,18 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
-            # Check if the activity is separated in space from previous activity by at least minSeparation meters
-            if (len(activities) > 0 and calDistanceBetweenPoints(gpsTraces[activities[-1][0]:activities[-1][1]], 
-                    gpsTraces[i:j-1]) < minSeparation):                
+            # Check if the activity is separated in space from previous activity by at least minSeparationDistance meters
+            # and separated in time by minSeparationTime milliseconds
+            if (len(activities) > 0 and gpsTraces[j-1][1] - gpsTraces[activities[-1][1]][1] < minSeparationTime
+                    and calDistanceBetweenPoints(gpsTraces[activities[-1][0]:activities[-1][1]], 
+                    gpsTraces[i:j-1]) < minSeparationDistance):                
                 activities[-1][-1] = j-1
             else:
                 activities.append([i, j-1])
             i = j - 1
         else:
             i += 1
-
+        
         if k == len(gpsTraces):
             break
 
@@ -439,18 +442,19 @@ def writeFile(data, filePath):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Day for which you wish to extract trips and activities
-date = '03052014'        # MMDDYYYY format of day for which you wish to extract data
+date = '03032014'        # MMDDYYYY format of day for which you wish to extract data
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
 
 # Tester personal details, change as appropriate
-testers = [{'name': 'Andrew', 'ph': '5107259365'}, 
+testers = [{'name': 'Andrew', 'ph': '5107259365'}]
+''', 
            {'name': 'Caroline', 'ph': '5107250774'},
            {'name': 'Rory', 'ph': '5107250619'},
            {'name': 'Sreeta', 'ph': '5107250786'},
            {'name': 'VijZiheng', 'ph': '5107250744'},
            {'name': 'ZihengVij', 'ph': '5107250740'}]
-
+'''
 # File path where the GitHub repository is located
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 
@@ -468,13 +472,14 @@ for tester in testers:
                      'date': date,
                      'ph': tester['ph']})            
         rawDataFileName = tester['ph'] + '_' + tester['name'] + '_' + date + '.txt'
-        gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
-        #gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
+        #gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
+        gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
         daySchedule, event = [], {}
-        minDuration, maxRadius, minSeparation, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 100, 300000, 200
+        minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
+        minSeparationDistance, minSeparationTime = 100, 360000
         maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
-        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, 
-                minSeparation, minSamplingRate, gpsAccuracyThreshold)
+        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
+                minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
         while trips or activities or holes:
             if ((trips and activities and holes and trips[0][0] < activities[0][0] and trips[0][0] < holes[0][0]) 
                     or (trips and not activities and holes and trips[0][0] < holes[0][0])

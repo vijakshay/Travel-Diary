@@ -103,8 +103,8 @@ def inferHoles(eventStart, eventEnd, events, holes, gpsTraces, minSamplingRate):
 #
 # GPS traces whose accuracy is above gpsAccuracyThreshold meters are ignored.
 
-def inferTripActivity(gpsTraces, minDuration, maxRadius, 
-        minSeparation, minSamplingRate, gpsAccuracyThreshold):
+def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
+        minSeparationTime, minSamplingRate, gpsAccuracyThreshold):
     
     trips, activities, holes = [], [], []
     
@@ -119,6 +119,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
         # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
         # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
+        
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
                 and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
@@ -138,16 +139,18 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
-            # Check if the activity is separated in space from previous activity by at least minSeparation meters
-            if (len(activities) > 0 and calDistanceBetweenPoints(gpsTraces[activities[-1][0]:activities[-1][1]], 
-                    gpsTraces[i:j-1]) < minSeparation):                
+            # Check if the activity is separated in space from previous activity by at least minSeparationDistance meters
+            # and separated in time by minSeparationTime milliseconds
+            if (len(activities) > 0 and gpsTraces[j-1][1] - gpsTraces[activities[-1][1]][1] < minSeparationTime
+                    and calDistanceBetweenPoints(gpsTraces[activities[-1][0]:activities[-1][1]], 
+                    gpsTraces[i:j-1]) < minSeparationDistance):                
                 activities[-1][-1] = j-1
             else:
                 activities.append([i, j-1])
             i = j - 1
         else:
             i += 1
-
+        
         if k == len(gpsTraces):
             break
 
@@ -178,7 +181,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius,
     
     return trips, newActivities, holes
 
-        
+
 # Functions that calculate the four features of a GPS point: distance to next point (in meters), 
 # time interval (seconds), speed (mph) and acceleration (mph2)
 
@@ -349,9 +352,10 @@ for dataFile in dataFiles:
     try:
         print dataFile + '\n'
         parseCSV(filePath, gpsTraces)
-        minDuration, maxRadius, minSeparation, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 100, 300000, 200
-        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, 
-                minSeparation, minSamplingRate, gpsAccuracyThreshold)
+        minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
+        minSeparationDistance, minSeparationTime = 100, 360000
+        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
+                minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
         print trips, activities, holes
         print
         

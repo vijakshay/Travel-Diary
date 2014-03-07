@@ -90,7 +90,7 @@ testers = [{'name': 'Andrew', 'ph': '5107259365'},
 
 # Details of data to be merged
 
-testerName = 'Sreeta'        # Should be the same as that listed in the ODK form
+testerName = 'Andrew'        # Should be the same as that listed in the ODK form
 date = '03052014'            # MMDDYYYY format of day for which you wish to extract data
 
 # Base directory where you clone the repository, change as appropriate
