@@ -217,8 +217,8 @@ def mergeData(gpsData, groundData):
 
 testerName = 'Vij'       # Should be the same as that listed in the ODK form
 phoneNum = '5107250744'  # 10-digit number with no brackets, hyphens or spaces
-date = '02032014'        # MMDDYYYY format of day for which you wish to extract data
->>>>>>> 9d55400f11301fee1a564369855fcc5e3858a851
+date = '02272014'        # MMDDYYYY format of day for which you wish to extract data
+
 gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
 
 # Base directory where you clone the repository, change as appropriate
@@ -228,7 +228,7 @@ filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 gpsFilePath = filePath + 'Travel-Diary/Data/Ground Truth/' + 'gaeandroid.txt'
 
 # Directory where you've saved the ODK file with just the ground truth, change as appropriate
-groundFilePath = filePath + 'Travel-Diary/Data/Ground Truth/' + 'Travel_and_Activity_Diary_results.csv'
+groundFilePath = filePath + 'Travel-Diary/Data/Ground Truth/' + 'Travel_and_Activity_Diary_v2_results.csv'
 
 # DON'T CHANGE ANYTHING BELOW THIS!
 
