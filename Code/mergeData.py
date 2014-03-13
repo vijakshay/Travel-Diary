@@ -85,13 +85,13 @@ testers = [{'name': 'Andrew', 'ph': '5107259365'},
            {'name': 'Caroline', 'ph': '5107250774'},
            {'name': 'Rory', 'ph': '5107250619'},
            {'name': 'Sreeta', 'ph': '5107250786'},
-           {'name': 'Vij', 'ph': '5107250744'},
-           {'name': 'Ziheng', 'ph': '5107250740'}]
+           {'name': 'Vij', 'ph': '5107250740'},
+           {'name': 'Ziheng', 'ph': '5107250744'}]
 
 # Details of data to be merged
 
-testerName = 'Andrew'        # Should be the same as that listed in the ODK form
-date = '03052014'            # MMDDYYYY format of day for which you wish to extract data
+testerName = 'Vij'        # Should be the same as that listed in the ODK form
+date = '03122014'            # MMDDYYYY format of day for which you wish to extract data
 
 # Base directory where you clone the repository, change as appropriate
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'

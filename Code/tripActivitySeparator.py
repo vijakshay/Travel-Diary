@@ -119,14 +119,14 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
         # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
-        
+        print i, j
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
                 and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
                 and calDistanceToPoint(gpsTraces[j], points) < maxRadius):
             points.append(gpsTraces[j])
             j += 1
-
+        
         # Check for black points
         k = j 
         while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
@@ -136,6 +136,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
                 if calDistanceToPoint(gpsTraces[k], points) < maxRadius:
                     j = k + 1
 
+        print i, j
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -153,7 +154,8 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         
         if k == len(gpsTraces):
             break
-
+        print i, j, activities
+        
     # Impute trips and identify holes in data
     numActivities, newActivities = len(activities), []
     if numActivities != 0:
@@ -253,6 +255,7 @@ for dataFile in dataFiles:
         distTotTrips += distTotal
         distInfTrips += distInferred
     except:
+        print "Unexpected error:", sys.exc_info()[0]
         pass
 
 #print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'

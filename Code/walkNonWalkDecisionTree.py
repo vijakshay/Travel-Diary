@@ -1,9 +1,13 @@
 import csv
 import math
 import numpy
+import sys
 from os import listdir
 from os.path import isfile, join
-import sys
+from sklearn import tree
+from sklearn.externals.six import StringIO
+import pydot
+
 
 
 # Procedure that takes as input a tab-delimited txt file, and stores the data as a list, 
@@ -136,14 +140,13 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
         # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
-        
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
                 and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
                 and calDistanceToPoint(gpsTraces[j], points) < maxRadius):
             points.append(gpsTraces[j])
             j += 1
-
+        
         # Check for black points
         k = j 
         while k < len(gpsTraces) and gpsTraces[k][4] >= gpsAccuracyThreshold:
@@ -170,7 +173,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         
         if k == len(gpsTraces):
             break
-
+        
     # Impute trips and identify holes in data
     numActivities, newActivities = len(activities), []
     if numActivities != 0:
@@ -200,7 +203,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
 
 
 # Functions that calculate the four features of a GPS point: distance to next point (in meters), 
-# time interval (seconds), speed (mph) and acceleration (mph2)
+# time interval (seconds), speed (mph), acceleration (mph2) and change in heading
 
 def lengthPoint(gpsTraces, j):
    return calDistance(gpsTraces[j][2:4], gpsTraces[j+1][2:4])
@@ -224,165 +227,52 @@ def headingChange(gpsTraces, j):
 
 def determineFeatures(gpsTraces, i):
     
-    features = {}
-    features['Speed'] = speedPoint(gpsTraces, i)
-    features['Acceleration'] = accelerationPoint(gpsTraces, i)
-    features['Heading Change'] = headingChange(gpsTraces, i)
+    features = []
+    features.append(speedPoint(gpsTraces, i))
+    features.append(accelerationPoint(gpsTraces, i))
+    features.append(headingChange(gpsTraces, i))
     return features
     
 
-# Method that that takes as input the list containing GPS data, called gpsTraces, and a tuple containing the 
-# indices of the start and end point of a trip, called trip.
-#
-# The trips are decomposed into their mode chains. 
+# Procedure that takes as input the GPS data, and the inferred trips, and calculates the 
+# features for each data point and attaches the ground truth label
 
-def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
-        minSegmentDuration, minSegmentLength, gpsAccuracyThreshold):
-
-    # Step 1: Label GPS points as walk points or non-walk points    
-    walkDummy = {}
-    i = trip[0]
-    while i < trip[1]:
-        start, end = i, i
-        while end < trip[1] and (gpsTraces[end][4] > gpsAccuracyThreshold 
-                or gpsTraces[end + 1][4] > gpsAccuracyThreshold
-                or gpsTraces[end + 2][4] > gpsAccuracyThreshold):
-            end += 1
-        if start == end:
-            features = determineFeatures(gpsTraces, i)            
-            if features['Acceleration'] <= 945:
-                if features['Heading Change'] <= 0.0000:
-                    walkDummy[i] = 0
-                elif features['Speed'] <= 8.0205:
-                    walkDummy[i] = 1
-                else:
-                    walkDummy[i] = 0
-            else:
-                walkDummy[i] = 0
-	    i += 1            
-	else:
-	    distance = calDistance(gpsTraces[start][2:4], gpsTraces[end][2:4])
-	    time = (gpsTraces[end][1] - gpsTraces[start][1]) / 1000.0
-	    speed = 2.23694 * (float(distance) / time)
-	    dummy = int(speed < maxWalkSpeed)
-            while i < end:
-                walkDummy[i] = dummy
-                i += 1
-    #print walkDummy 
-    #print
+def labelData(gpsTraces, trip, labeledData):
     
-    # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points 
-    modeChains = []
-    beginSegment = trip[0]
-    currentPoint = trip[0] + 1
-    while currentPoint < trip[1]:
-        if walkDummy[currentPoint] != walkDummy[beginSegment]:
-            modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
-            beginSegment = currentPoint
-        currentPoint += 1
-    modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
-    #print modeChains
-    #print
-
-    # Step 3: If the time span of a segment is greater than minSegmentDuration milliseconds, label it 
-    # as certain. If it is less than minSegmentDuration milliseconds, and its backward segment is certain,
-    # merge it with the backward segment. If no certain backward segment exists, label the segment as 
-    # uncertain, and save it as an independent segment. 
-    newModeChains = []
-    for i in range(0, len(modeChains)):
-        if gpsTraces[modeChains[i][1]][1] - gpsTraces[modeChains[i][0]][1] >= minSegmentDuration:
-            modeChains[i].append(1)
-            newModeChains.append(modeChains[i])
-        elif newModeChains and newModeChains[-1][-1] == 1:
-            newModeChains[-1][1] = modeChains[i][1]
-        else:
-            modeChains[i].append(0)
-            newModeChains.append(modeChains[i])
-    modeChains = newModeChains
-    #print modeChains
-    #print
-
-    # Step 4: Merge consecutive uncertain segments into a single certain segment. Calculate average
-    # speed over segment and compare it against maxWalkSpeed to determine whether walk or non-walk.
-    # Check if this segment exceeds minSegmentDuration milliseconds. If it doesn't, and there exists 
-    # a certain forward segment, merge the new segment with this forward segment. 
-    newModeChains, i = [modeChains[0][0:-1]], 1
-    while i < len(modeChains) and modeChains[i][-1] == 0:
-        i += 1
-    if i > 1:
-        newModeChains[0][1] = modeChains[i-1][1]
-        distance = calDistance(gpsTraces[newModeChains[0][0]][2:4], gpsTraces[newModeChains[0][1]][2:4])
-        time = (gpsTraces[newModeChains[0][1]][1] - gpsTraces[newModeChains[0][0]][1]) / 1000.0
-        speed = 2.23694 * (float(distance) / time)
-        newModeChains[0][-1] = int(speed < maxWalkSpeed)
-    if i < len(modeChains) and modeChains[0][-1] == 0:
-        time = (gpsTraces[newModeChains[0][1]][1] - gpsTraces[newModeChains[0][0]][1])
-        if time < minSegmentDuration:
-            modeChains[i][0] = trip[0]
-            newModeChains = []
-    while i < len(modeChains):
-        newModeChains.append(modeChains[i][:-1])
-        i += 1
-    modeChains = newModeChains
-    #print modeChains
-    #print
-        
-    # Step 5: Merge consecutive walk segments and consecutive non-walk segments
-    newModeChains = [modeChains[0]]
-    for i in range(1, len(modeChains)):
-        if modeChains[i][2] == newModeChains[-1][2]:
-            newModeChains[-1][1] = modeChains[i][1]
-        else:
-            newModeChains.append(modeChains[i])
-    modeChains = newModeChains    
-
-    return modeChains
-    
-
-# Method that takes as input the GPS data, and the inferred mode chains, and returns the total time elapsed 
-# and distance covered over the dataset inferred as trips, and the time and distance correctly inferred
-# as either a walk segment or non-walk segment
-
-def calInfAccuray(modeChains, gpsTraces):
-    
-    timeTotal, timeInferred, distTotal, distInferred = 0, 0, 0, 0
-    segTotal, segInferred, segWalkInfNonWalk, segNonWalkInfWalk = 0, 0, 0, 0
-    for modeChain in modeChains:
-        segTotal += 1
-        walk, nonWalk, activity = 0, 0, 0
-        for i in range(modeChain[0], modeChain[1]):
-            timeTotal += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-            distTotal += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)            
-
+    walk, nonWalk, activity = 0, 0, 0
+    for i in range(trip[0], trip[1]):
+        try:
+            features = determineFeatures(gpsTraces, i)
             if gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk':
-                walk += 1
+                features.append(1)
+                labeledData.append(features)
             elif gpsTraces[i][10] == 'Trip':
-                nonWalk += 1
-            else:
-                activity += 1
-                        
-            if ((modeChain[-1] == 1 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk') or
-                    (modeChain[-1] == 0 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] != 'Walk')):
-                timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-                distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
+                features.append(0)
+                labeledData.append(features)    
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            pass
 
-        if ((max(walk, nonWalk, activity) == walk and modeChain[-1] == 1) 
-                or (max(walk, nonWalk, activity) == nonWalk and modeChain[-1] == 0)):
-            segInferred += 1
-        elif (max(walk, nonWalk, activity) == walk and modeChain[-1] == 0):
-            segWalkInfNonWalk += 1
-        elif (max(walk, nonWalk, activity) == nonWalk and modeChain[-1] == 1):
-            segNonWalkInfWalk += 1
-                        
-    return (timeTotal, timeInferred, distTotal, distInferred, 
-            segTotal, segInferred, segWalkInfNonWalk, segNonWalkInfWalk)  
+
+# Procedure that takes as input a list of lists, where each element of the inner list is a numeric value,
+# and return a 2-D numpy matrix containing the same elements
+
+def convertListToArray(inputLists):
+    outputArray, currentRow = numpy.zeros(shape = (len(inputLists), len(inputLists[0]))), 0
+    for inputList in inputLists:
+        currentColumn = 0
+        for inputElement in inputList:
+            outputArray[currentRow, currentColumn] = inputElement
+            currentColumn += 1
+        currentRow += 1
+    return outputArray
 
 
 # The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
 # format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
 # 9-digit number with no brackets and hyphens, and date data recorded is in MMDDYYYY format.
 # 
-# The file should contain fourteen columns. The first nine columns denote the tester ID, timestamp (in epoch time, 
+# The file should contain fourteen columns. The first ten columns denote the tester ID, timestamp (in epoch time, 
 # recorded in milliseconds), latitude, longitude, GPS accuracy (in feet), battery status (in percentage), 
 # sampling rate (in seconds), accelermoeter reading, activity as inferred by the Google API, and PST time, respectively. 
 # The values for each of these fields will be generated by the tracking app installed on the test phone in 
@@ -399,50 +289,36 @@ def calInfAccuray(modeChains, gpsTraces):
 dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
 
 # Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Temp/'
-dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
+inputPath = dirPath + 'Travel-Diary/Data/Google Play API/'
+outputPath = dirPath + 'Travel-Diary/Documentation/Change Point Segmentation/'
 
-timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
-segTotTrips, segInfTrips, segWalkInfNonWalkTrips, segNonWalkInfWalkTrips = 0, 0, 0, 0
+dataFiles = [ f for f in listdir(inputPath) if isfile(join(inputPath,f)) ]
+
+minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
+minSeparationDistance, minSeparationTime = 100, 360000
+labeledData = []
+
 for dataFile in dataFiles:
     gpsTraces = []
-    filePath = dirPath + dataFile
+    filePath = inputPath + dataFile
     try:
-        print dataFile + '\n'
         parseCSV(filePath, gpsTraces)
-        minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
-        minSeparationDistance, minSeparationTime = 100, 360000
         trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
                 minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
-        print trips, activities, holes
-        print
-        
-        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5, 1620, 90000, 200
+        print dataFile, trips, activities, holes 
+
         for trip in trips:
-            print trip
-            print
-            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
-                    minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
-            print modeChains
-            print
-            (timeTotal, timeInferred, distTotal, distInferred, segTotal, segInferred, 
-                    segWalkInfNonWalk, segNonWalkInfWalk) = calInfAccuray(modeChains, gpsTraces)           
-            timeTotTrips += timeTotal
-            timeInfTrips += timeInferred
-            distTotTrips += distTotal
-            distInfTrips += distInferred
-            segTotTrips += segTotal
-            segInfTrips += segInferred
-            segWalkInfNonWalkTrips += segWalkInfNonWalk
-            segNonWalkInfWalkTrips += segNonWalkInfWalk
+            labelData(gpsTraces, trip, labeledData)
+
     except:
         print "Unexpected error:", sys.exc_info()[0]
         pass
 
-print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
-print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
-print 'Accuracy in terms of number of segments: ' + str(round((segInfTrips*100)/segTotTrips, 2)) + '%'
-print ('Percenatge of total segments that are walk but inferred as non-walk: ' 
-        + str(round((segWalkInfNonWalkTrips*100)/segTotTrips, 2)) + '%')
-print ('Percenatge of total segments that are non-walk but inferred as walk: ' 
-        + str(round((segNonWalkInfWalkTrips*100)/segTotTrips, 2)) + '%')
+labeledData = convertListToArray(labeledData)
+clf = tree.DecisionTreeClassifier(max_depth = 3, min_samples_leaf = 5)
+clf = clf.fit(labeledData[:, :-1], labeledData[:, -1])
+
+dot_data = StringIO() 
+tree.export_graphviz(clf, out_file=dot_data) 
+graph = pydot.graph_from_dot_data(dot_data.getvalue()) 
+graph.write_pdf(outputPath + "walkNonWalkDecisionTree.pdf") 

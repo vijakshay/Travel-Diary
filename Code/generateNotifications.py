@@ -1,25 +1,50 @@
+import urllib2 
 import csv
 import math
 import numpy
-from os import listdir
-from os.path import isfile, join
-import sys
+import datetime, pytz
+from os import remove
 
 
-# Procedure that takes as input a tab-delimited txt file, and stores the data as a list, 
-# where each element of the list is a list itself that corresponds to a row in the file,
-# and each element of that list corresponds to an entry in that row. 
+# Procedure that takes as input strings deonting the tester name, test phone number, date and time, 
+# and a temporary file path name. Output is a list of lists containing GPS data collected over 
+# the last 24 hours for that tester and phone.
 
-def parseCSV(filePath, data):
-    with open(filePath, 'rU') as csvfile:
+def getNewGPSData(testerName, phoneNum, lastUpdate, gpsFilePath):
+
+    url = 'http://' + phoneNum + 'gp.appspot.com/gaeandroid?query=1'
+    data = urllib2.urlopen(url)
+    
+    localFile = open(gpsFilePath, 'w')
+    localFile.write(data.read())
+    localFile.close()
+
+    year = int(lastUpdate[0:4])
+    month = int(lastUpdate[4:6])
+    day = int(lastUpdate[6:8])
+    hours = int(lastUpdate[9:11])
+    minutes = int(lastUpdate[11:13])
+    seconds = int(lastUpdate[13:15])
+    endTime = 1000 * int(datetime.datetime(year, month, day, hours, minutes, seconds).strftime('%s'))
+    startTime = endTime - (24 * 60 * 60 * 1000) 
+
+    gpsData = []
+    with open(gpsFilePath, 'rU') as csvfile:
         for row in csv.reader(csvfile, delimiter = '\t'):
-            tList = []
-            for element in row:
-                try:
-                    tList.append(float(element))    
-                except:
-                    tList.append(element)    
-            data.append(tList)
+            try:
+                if int(row[1]) >= startTime and int(row[1]) <= endTime:
+                    tList = []
+                    for element in row:
+                        try:
+                            tList.append(float(element))    
+                        except:
+                            tList.append(element)    
+                    gpsData.append(tList)
+            except:
+                pass            
+    gpsData = sorted(gpsData, key = lambda x: int(x[1]))
+    remove(gpsFilePath)
+    return gpsData
 
 
 # Function that uses the haversine formula to calculate the 'great-circle' distance in meters
@@ -38,22 +63,6 @@ def calDistance(point1, point2):
     d = earthRadius * c 
     
     return d
-
-
-# Function that calculates the initial bearing in degrees from point 1 to point 2, given the 
-# latitude and longitude of both points
-
-def calBearing(point1, point2):
-
-    dLon = math.radians(point2[1]-point1[1])    
-    lat1 = math.radians(point1[0])
-    lat2 = math.radians(point2[0])
-    
-    y = math.sin(dLon) * math.cos(lat2)
-    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
-    b = math.atan2(y, x)
-
-    return math.degrees(b)
 
 
 # Function that takes as input a point and a list of points, where a point is itself a list containing 
@@ -197,7 +206,7 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         trips.append([0, len(gpsTraces)-1])
     
     return trips, newActivities, holes
-
+        
 
 # Functions that calculate the four features of a GPS point: distance to next point (in meters), 
 # time interval (seconds), speed (mph) and acceleration (mph2)
@@ -214,22 +223,6 @@ def speedPoint(gpsTraces, j):
 def accelerationPoint(gpsTraces, j):
   return abs(speedPoint(gpsTraces, j + 1) - speedPoint(gpsTraces, j)) / (timePoint(gpsTraces,j) / 3600.0)
 
-def headingChange(gpsTraces, j):
-    return math.fabs(calBearing(gpsTraces[j][2:4], gpsTraces[j + 1][2:4]) 
-            - calBearing(gpsTraces[j + 1][2:4], gpsTraces[j + 2][2:4]))    
-    
-    
-# Methods that takes an input the GPS data and the index of a particular point in the data, and returns
-# a list contanining the features of that point
-
-def determineFeatures(gpsTraces, i):
-    
-    features = {}
-    features['Speed'] = speedPoint(gpsTraces, i)
-    features['Acceleration'] = accelerationPoint(gpsTraces, i)
-    features['Heading Change'] = headingChange(gpsTraces, i)
-    return features
-    
 
 # Method that that takes as input the list containing GPS data, called gpsTraces, and a tuple containing the 
 # indices of the start and end point of a trip, called trip.
@@ -249,16 +242,10 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
                 or gpsTraces[end + 2][4] > gpsAccuracyThreshold):
             end += 1
         if start == end:
-            features = determineFeatures(gpsTraces, i)            
-            if features['Acceleration'] <= 945:
-                if features['Heading Change'] <= 0.0000:
-                    walkDummy[i] = 0
-                elif features['Speed'] <= 8.0205:
-                    walkDummy[i] = 1
-                else:
-                    walkDummy[i] = 0
-            else:
-                walkDummy[i] = 0
+            if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
+                walkDummy[i] = 1
+	    else:
+	       walkDummy[i] = 0
 	    i += 1            
 	else:
 	    distance = calDistance(gpsTraces[start][2:4], gpsTraces[end][2:4])
@@ -339,110 +326,135 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
     return modeChains
     
 
-# Method that takes as input the GPS data, and the inferred mode chains, and returns the total time elapsed 
-# and distance covered over the dataset inferred as trips, and the time and distance correctly inferred
-# as either a walk segment or non-walk segment
+# Method for generating list of dictionary elements, where each elements correspond to an inferred event in the
+# last 24 hours for each of the system users
 
-def calInfAccuray(modeChains, gpsTraces):
+def generateEvents(testers, gmtConversion):        
+
+    lastUpdate = datetime.datetime.now().strftime('%Y%m%dT%H%M%S') + gmtConversion
+    data = []
+    for tester in testers:
+        try:
+            rawDataFileName = tester['ph'] + '_' + tester['name'] + '_' + lastUpdate + '.txt'
+            gpsTraces = getNewGPSData(tester['name'], tester['ph'], lastUpdate, rawDataFileName)
+            minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
+            minSeparationDistance, minSeparationTime = 100, 360000
+            maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 3.10, 1620, 90000, 200
+            trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
+                    minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
+            
+            while (trips and activities) or (activities and holes) or (holes and trips):
+                event = {}
+                if ((trips and activities and holes and trips[0][0] < activities[0][0] and trips[0][0] < holes[0][0]) 
+                        or (trips and not activities and holes and trips[0][0] < holes[0][0])
+                        or (trips and activities and not holes and trips[0][0] < activities[0][0])
+                        or (trips and not activities and not holes)):
+                
+                    modeChain = inferModeChain(gpsTraces, trips[0], maxWalkSpeed, maxWalkAcceleration, 
+                            minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
+                    segmentID, segments = 1, []
+                    for mode in modeChain:
+                        segment = {'Segment ID': segmentID,
+                                   'Travel Mode': ((mode[-1] == 0) * 'Non-walk') + ((mode[-1] == 1) * 'Walk'),
+                                   'Unconfirmed Mode': '',
+                                   'Start Time': (datetime.datetime.fromtimestamp(int(gpsTraces[mode[0]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                            + gmtConversion),
+                                   'End Time': (datetime.datetime.fromtimestamp(int(gpsTraces[mode[1]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                            + gmtConversion)}
+                        trackPoints = []
+                        for i in range(mode[0], mode[1]):
+                            trackPoint = {'Location': {'type': 'Point',
+                                                       'coordinates': [gpsTraces[i][2], gpsTraces[i][3]]},
+                                          'Time': (datetime.datetime.fromtimestamp(int(gpsTraces[i][1]/1000)).strftime('%Y%m%dT%H%M%S') 
+                                                        + gmtConversion)}
+                            trackPoints.append(trackPoint)                        
+                        segment['Track Points'] = trackPoints    
+                        segments.append(segment)                   
+                        segmentID += 1
+                                                    
+                    eventID = (tester['name'] + 
+                            datetime.datetime.fromtimestamp(int(gpsTraces[trips[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S') + 
+                            gmtConversion)
+                            
+                    event = {'Source': 'ITS Berkeley',
+                             'User ID': tester['name'],
+                             'Event ID': eventID,
+                             'Type': 'Trip',
+                             'Start Time': (datetime.datetime.fromtimestamp(int(gpsTraces[trips[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'End Time': (datetime.datetime.fromtimestamp(int(gpsTraces[trips[0][1]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'Segments': segments,
+                             'Last Update': lastUpdate}
+                    
+                    data.append(event)
+                    trips = trips[1:]
+            
+                elif ((activities and trips and holes and activities[0][0] < trips[0][0] and activities[0][0] < holes[0][0]) 
+                        or (activities and not trips and holes and activities[0][0] < holes[0][0])
+                        or (activities and trips and not holes and activities[0][0] < trips[0][0])
+                        or (activities and not trips and not holes)):
     
-    timeTotal, timeInferred, distTotal, distInferred = 0, 0, 0, 0
-    segTotal, segInferred, segWalkInfNonWalk, segNonWalkInfWalk = 0, 0, 0, 0
-    for modeChain in modeChains:
-        segTotal += 1
-        walk, nonWalk, activity = 0, 0, 0
-        for i in range(modeChain[0], modeChain[1]):
-            timeTotal += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-            distTotal += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)            
+                    eventID = (tester['name'] + 
+                            datetime.datetime.fromtimestamp(int(gpsTraces[activities[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S') + 
+                            gmtConversion)
+    
+                    trackPoints = []
+                    for i in range(activities[0][0], activities[0][1]):
+                        trackPoint = {'Location': {'type': 'Point',
+                                                   'coordinates': [gpsTraces[i][2], gpsTraces[i][3]]},
+                                      'Time': (datetime.datetime.fromtimestamp(int(gpsTraces[i][1]/1000)).strftime('%Y%m%dT%H%M%S') 
+                                                        + gmtConversion)}
+                        trackPoints.append(trackPoint)                        
+                                                    
+                    event = {'Source': 'ITS Berkeley',
+                             'User ID': tester['name'],
+                             'Event ID': eventID,
+                             'Type': 'Activity',
+                             'Start Time': (datetime.datetime.fromtimestamp(int(gpsTraces[activities[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'End Time': (datetime.datetime.fromtimestamp(int(gpsTraces[activities[0][1]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'Track Points': trackPoints,
+                             'Last Update': lastUpdate}
+                    
+                    data.append(event)
+                    activities = activities[1:]
+    
+                elif holes:
+    
+                    eventID = (tester['name'] + 
+                            datetime.datetime.fromtimestamp(int(gpsTraces[holes[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S') + 
+                            gmtConversion)
+    
+                    event = {'Source': 'ITS Berkeley',
+                             'User ID': tester['name'],
+                             'Event ID': eventID,
+                             'Type': 'Hole',
+                             'Start Time': (datetime.datetime.fromtimestamp(int(gpsTraces[holes[0][0]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'End Time': (datetime.datetime.fromtimestamp(int(gpsTraces[holes[0][1]][1]/1000)).strftime('%Y%m%dT%H%M%S')
+                                                + gmtConversion),
+                             'Last Update': lastUpdate}
+                    
+                    data.append(event)
+                    holes = holes[1:]
+            remove(rawDataFileName)
+        except:
+            pass
+    return data
 
-            if gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk':
-                walk += 1
-            elif gpsTraces[i][10] == 'Trip':
-                nonWalk += 1
-            else:
-                activity += 1
-                        
-            if ((modeChain[-1] == 1 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] == 'Walk') or
-                    (modeChain[-1] == 0 and gpsTraces[i][10] == 'Trip' and gpsTraces[i][11] != 'Walk')):
-                timeInferred += ((gpsTraces[i+1][1] - gpsTraces[i][1])/1000.0)
-                distInferred += (calDistance(gpsTraces[i][2:4], gpsTraces[i+1][2:4])/1609.34)
 
-        if ((max(walk, nonWalk, activity) == walk and modeChain[-1] == 1) 
-                or (max(walk, nonWalk, activity) == nonWalk and modeChain[-1] == 0)):
-            segInferred += 1
-        elif (max(walk, nonWalk, activity) == walk and modeChain[-1] == 0):
-            segWalkInfNonWalk += 1
-        elif (max(walk, nonWalk, activity) == nonWalk and modeChain[-1] == 1):
-            segNonWalkInfWalk += 1
-                        
-    return (timeTotal, timeInferred, distTotal, distInferred, 
-            segTotal, segInferred, segWalkInfNonWalk, segNonWalkInfWalk)  
+# Tester personal details, change as appropriate
+testers = [{'name': 'Andrew', 'ph': '5107259365'},
+           {'name': 'Caroline', 'ph': '5107250774'},
+           {'name': 'Rory', 'ph': '5107250619'},
+           {'name': 'Sreeta', 'ph': '5107250786'},
+           {'name': 'Ziheng', 'ph': '5107250744'},
+           {'name': 'Vij', 'ph': '5107250740'}]
 
+# Difference in hours between local time and UTC time, remember to change for daylight savings    
+gmtConversion = datetime.datetime.now(pytz.timezone('America/Los_Angeles')).strftime('%z')    
 
-# The input file is a csv containing the GPS data and ground truth. The file name should follow the generic
-# format: '<test phone number>_<tester alias>_<date data recorded>.csv', where test phone number is a 
-# 9-digit number with no brackets and hyphens, and date data recorded is in MMDDYYYY format.
-# 
-# The file should contain fourteen columns. The first nine columns denote the tester ID, timestamp (in epoch time, 
-# recorded in milliseconds), latitude, longitude, GPS accuracy (in feet), battery status (in percentage), 
-# sampling rate (in seconds), accelermoeter reading, activity as inferred by the Google API, and PST time, respectively. 
-# The values for each of these fields will be generated by the tracking app installed on the test phone in 
-# the appropriate units, and you shouldn't have to change anything.
-#
-# The next four columns reflect the ground truth that will be used to train our inference algorithms.
-# The eleventh column can take on two string values: (1) Trip, if the individual at the time was making a trip; 
-# or (2) Activity, if the individual at the time was engaging in an activity. Columns twelve to fourteen 
-# are strings containing information regarding the trip or activity.
-#
-# Finally, the rows in the file should be ordered in terms of increasing time. 
-
-# Base directory where you clone the repository, change as appropriate
-dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
-
-# Shouldn't have to change anything below this for the code to run
-dirPath += 'Travel-Diary/Data/Temp/'
-dataFiles = [ f for f in listdir(dirPath) if isfile(join(dirPath,f)) ]
-
-timeTotTrips, timeInfTrips, distTotTrips, distInfTrips = 0, 0, 0, 0
-segTotTrips, segInfTrips, segWalkInfNonWalkTrips, segNonWalkInfWalkTrips = 0, 0, 0, 0
-for dataFile in dataFiles:
-    gpsTraces = []
-    filePath = dirPath + dataFile
-    try:
-        print dataFile + '\n'
-        parseCSV(filePath, gpsTraces)
-        minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
-        minSeparationDistance, minSeparationTime = 100, 360000
-        trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
-                minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
-        print trips, activities, holes
-        print
-        
-        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5, 1620, 90000, 200
-        for trip in trips:
-            print trip
-            print
-            modeChains = inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration, 
-                    minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
-            print modeChains
-            print
-            (timeTotal, timeInferred, distTotal, distInferred, segTotal, segInferred, 
-                    segWalkInfNonWalk, segNonWalkInfWalk) = calInfAccuray(modeChains, gpsTraces)           
-            timeTotTrips += timeTotal
-            timeInfTrips += timeInferred
-            distTotTrips += distTotal
-            distInfTrips += distInferred
-            segTotTrips += segTotal
-            segInfTrips += segInferred
-            segWalkInfNonWalkTrips += segWalkInfNonWalk
-            segNonWalkInfWalkTrips += segNonWalkInfWalk
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
-        pass
-
-print 'Accuracy in terms of time: ' + str(round((timeInfTrips*100)/timeTotTrips, 2)) + '%'
-print 'Accuracy in terms of distance: ' + str(round((distInfTrips*100)/distTotTrips, 2)) + '%'
-print 'Accuracy in terms of number of segments: ' + str(round((segInfTrips*100)/segTotTrips, 2)) + '%'
-print ('Percenatge of total segments that are walk but inferred as non-walk: ' 
-        + str(round((segWalkInfNonWalkTrips*100)/segTotTrips, 2)) + '%')
-print ('Percenatge of total segments that are non-walk but inferred as walk: ' 
-        + str(round((segNonWalkInfWalkTrips*100)/segTotTrips, 2)) + '%')
+# Generate list of events
+data = generateEvents(testers, gmtConversion)
