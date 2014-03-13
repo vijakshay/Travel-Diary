@@ -2,6 +2,7 @@ import urllib2
 import csv
 import math
 import numpy
+import sys
 from os import remove
 
 
@@ -148,6 +149,22 @@ def calDistance(point1, point2):
     d = earthRadius * c 
     
     return d
+
+
+# Function that calculates the initial bearing in degrees from point 1 to point 2, given the 
+# latitude and longitude of both points
+
+def calBearing(point1, point2):
+
+    dLon = math.radians(point2[1]-point1[1])    
+    lat1 = math.radians(point1[0])
+    lat2 = math.radians(point2[0])
+    
+    y = math.sin(dLon) * math.cos(lat2)
+    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
+    b = math.atan2(y, x)
+
+    return math.degrees(b)
 
 
 # Function that takes as input a point and a list of points, where a point is itself a list containing 
@@ -308,6 +325,22 @@ def speedPoint(gpsTraces, j):
 def accelerationPoint(gpsTraces, j):
   return abs(speedPoint(gpsTraces, j + 1) - speedPoint(gpsTraces, j)) / (timePoint(gpsTraces,j) / 3600.0)
 
+def headingChange(gpsTraces, j):
+    return math.fabs(calBearing(gpsTraces[j][2:4], gpsTraces[j + 1][2:4]) 
+            - calBearing(gpsTraces[j + 1][2:4], gpsTraces[j + 2][2:4]))    
+    
+    
+# Methods that takes an input the GPS data and the index of a particular point in the data, and returns
+# a list contanining the features of that point
+
+def determineFeatures(gpsTraces, i):
+    
+    features = {}
+    features['Speed'] = speedPoint(gpsTraces, i)
+    features['Acceleration'] = accelerationPoint(gpsTraces, i)
+    features['Heading Change'] = headingChange(gpsTraces, i)
+    return features
+    
 
 # Method that that takes as input the list containing GPS data, called gpsTraces, and a tuple containing the 
 # indices of the start and end point of a trip, called trip.
@@ -327,10 +360,16 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
                 or gpsTraces[end + 2][4] > gpsAccuracyThreshold):
             end += 1
         if start == end:
-            if speedPoint(gpsTraces, i) < maxWalkSpeed and accelerationPoint(gpsTraces, i) < maxWalkAcceleration:
-                walkDummy[i] = 1
-	    else:
-	       walkDummy[i] = 0
+            features = determineFeatures(gpsTraces, i)            
+            if features['Acceleration'] <= 945:
+                if features['Heading Change'] <= 0.0000:
+                    walkDummy[i] = 0
+                elif features['Speed'] <= 8.0205:
+                    walkDummy[i] = 1
+                else:
+                    walkDummy[i] = 0
+            else:
+                walkDummy[i] = 0
 	    i += 1            
 	else:
 	    distance = calDistance(gpsTraces[start][2:4], gpsTraces[end][2:4])
@@ -442,19 +481,18 @@ def writeFile(data, filePath):
 # Finally, the rows in the file should be ordered in terms of increasing time. 
 
 # Day for which you wish to extract trips and activities
-date = '03032014'        # MMDDYYYY format of day for which you wish to extract data
-gmtConversion = -8       # Difference in hours between local time and UTC time, remember to change for daylight savings
+date = '03122014'        # MMDDYYYY format of day for which you wish to extract data
+gmtConversion = -7       # Difference in hours between local time and UTC time, remember to change for daylight savings
 gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
 
 # Tester personal details, change as appropriate
-testers = [{'name': 'Andrew', 'ph': '5107259365'}]
-''', 
+testers = [{'name': 'Andrew', 'ph': '5107259365'},
            {'name': 'Caroline', 'ph': '5107250774'},
            {'name': 'Rory', 'ph': '5107250619'},
            {'name': 'Sreeta', 'ph': '5107250786'},
-           {'name': 'VijZiheng', 'ph': '5107250744'},
-           {'name': 'ZihengVij', 'ph': '5107250740'}]
-'''
+           {'name': 'Ziheng', 'ph': '5107250744'},
+           {'name': 'Vij', 'ph': '5107250740'}]
+
 # File path where the GitHub repository is located
 filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
 
@@ -472,12 +510,12 @@ for tester in testers:
                      'date': date,
                      'ph': tester['ph']})            
         rawDataFileName = tester['ph'] + '_' + tester['name'] + '_' + date + '.txt'
-        #gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
-        gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
+        gpsTraces = getNewGPSData(tester['name'], tester['ph'], date, gmtConversion, rawDataPath + rawDataFileName)
+        #gpsTraces = getExistingGPSData(rawDataPath + rawDataFileName)
         daySchedule, event = [], {}
         minDuration, maxRadius, minSamplingRate, gpsAccuracyThreshold = 360000, 50, 300000, 200
         minSeparationDistance, minSeparationTime = 100, 360000
-        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 5.60, 1620, 90000, 200
+        maxWalkSpeed, maxWalkAcceleration, minSegmentDuration, minSegmentLength = 3.10, 1620, 90000, 200
         trips, activities, holes = inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance, 
                 minSeparationTime, minSamplingRate, gpsAccuracyThreshold)
         while trips or activities or holes:
@@ -518,6 +556,7 @@ for tester in testers:
         #print daySchedule
         data[-1]['Day Schedule'] = daySchedule
     except:
+        print "Unexpected error:", sys.exc_info()[0]
         pass
     
 writeFile(data, groundTruthPath)
