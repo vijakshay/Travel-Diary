@@ -1,0 +1,13 @@
+Start Time,End Time,Type,Comments,,
+Tue Mar 18 03:00:18 PDT 2014,Tue Mar 18 05:25:16 PDT 2014,Activity,Activity,Sleep,Home
+Tue Mar 18 05:25:16 PDT 2014,Tue Mar 18 12:23:44 PDT 2014,Hole,Hole,,
+Tue Mar 18 12:23:44 PDT 2014,Tue Mar 18 12:27:07 PDT 2014,Walk trip,Trip,Walk,
+Tue Mar 18 12:27:07 PDT 2014,Tue Mar 18 12:29:39 PDT 2014,Non-walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 12:29:39 PDT 2014,Tue Mar 18 12:34:40 PDT 2014,Walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 12:34:40 PDT 2014,Tue Mar 18 12:37:11 PDT 2014,Non-walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 12:37:11 PDT 2014,Tue Mar 18 12:43:10 PDT 2014,Hole,Hole,,
+Tue Mar 18 12:43:10 PDT 2014,Tue Mar 18 15:45:41 PDT 2014,Activity,Activity,Work,McLaughlin Hall
+Tue Mar 18 15:45:41 PDT 2014,Tue Mar 18 15:57:17 PDT 2014,Activity,Activity,Meals,Menchies
+Tue Mar 18 15:57:17 PDT 2014,Tue Mar 18 16:21:04 PDT 2014,Walk trip,Trip,Walk,
+Tue Mar 18 16:21:04 PDT 2014,Tue Mar 18 22:01:22 PDT 2014,Activity,Activity,Work,Home
+Tue Mar 18 22:01:22 PDT 2014,Tue Mar 18 22:01:52 PDT 2014,Walk trip,Activity,Work,Home

@@ -1,0 +1,18 @@
+Start Time,End Time,Type,Comments,,
+Tue Mar 18 08:43:25 PDT 2014,Tue Mar 18 08:49:38 PDT 2014,Activity,Activity,Household_chores,Home
+Tue Mar 18 08:49:38 PDT 2014,Tue Mar 18 08:58:50 PDT 2014,Non-walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 08:58:50 PDT 2014,Tue Mar 18 09:11:10 PDT 2014,Walk trip,Trip,Walk,
+Tue Mar 18 09:11:10 PDT 2014,Tue Mar 18 11:18:03 PDT 2014,Activity,Activity,Work,McLaughlin Hall
+Tue Mar 18 11:18:03 PDT 2014,Tue Mar 18 11:23:00 PDT 2014,Walk trip,Trip,Bike,
+Tue Mar 18 11:23:00 PDT 2014,Tue Mar 18 11:38:47 PDT 2014,Activity,Activity,Waiting,Great China
+Tue Mar 18 11:38:47 PDT 2014,Tue Mar 18 11:39:07 PDT 2014,Non-walk trip,Trip,Walk,
+Tue Mar 18 11:39:07 PDT 2014,Tue Mar 18 13:02:13 PDT 2014,Activity,Activity,Meals,Saturn Café
+Tue Mar 18 13:02:13 PDT 2014,Tue Mar 18 13:06:59 PDT 2014,Non-walk trip,Trip,Bike,
+Tue Mar 18 13:06:59 PDT 2014,Tue Mar 18 17:56:33 PDT 2014,Activity,Activity,Work,McLaughlin Hall
+Tue Mar 18 17:56:33 PDT 2014,Tue Mar 18 18:00:43 PDT 2014,Non-walk trip,Trip,Walk,
+Tue Mar 18 18:00:43 PDT 2014,Tue Mar 18 18:02:41 PDT 2014,Walk trip,Trip,Walk,
+Tue Mar 18 18:02:41 PDT 2014,Tue Mar 18 18:17:33 PDT 2014,Activity,Activity,Waiting,Bus Stop
+Tue Mar 18 18:17:33 PDT 2014,Tue Mar 18 18:20:18 PDT 2014,Non-walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 18:20:18 PDT 2014,Tue Mar 18 18:30:33 PDT 2014,Walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 18:30:33 PDT 2014,Tue Mar 18 18:37:43 PDT 2014,Non-walk trip,Trip,Transit,AC_Transit
+Tue Mar 18 18:37:43 PDT 2014,Tue Mar 18 19:16:27 PDT 2014,Activity,Activity,Meals,Home
