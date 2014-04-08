@@ -6,18 +6,58 @@ import datetime, pytz
 from os import remove
 
 
+# Check if a given year is a leap year or not
+
+def isLeapYear(year):
+    if year % 400 == 0:
+        return True
+    if year % 100 == 0:
+        return False
+    if year % 4 == 0:
+        return True
+    return False
+
+
+# Calculate days in a month for a given year
+
+def daysInMonth(year, month):
+    if month in (1, 3, 5, 7, 8, 10, 12):
+        return 31
+    elif month == 2:
+        if isLeapYear(year):
+            return 29
+        return 28
+    return 30
+
+
+# Calculate previous day as per the Gregorian calendar
+
+def previousDay(year, month, day):
+    if day != 1:
+        return year, month, day - 1
+    else:
+        if month == 1:
+            return year - 1, 12, 31
+        else:
+            return year, month - 1, daysInMonth(year, month - 1)
+
+
+# Calculate week number as per the Gregorian calendar
+
+def getWeek(year, month, day):
+    currentDay, currentWeek = 2, 1
+    while currentDay <= day:
+        if datetime.datetime(year, month, currentDay).weekday() == 6:
+            currentWeek += 1
+        currentDay += 1
+    return currentWeek
+
+
 # Procedure that takes as input strings deonting the tester name, test phone number, date and time, 
 # and a temporary file path name. Output is a list of lists containing GPS data collected over 
 # the last 24 hours for that tester and phone.
 
 def getNewGPSData(testerName, phoneNum, lastUpdate, gpsFilePath):
-
-    url = 'http://' + phoneNum + 'gp.appspot.com/gaeandroid?query=1'
-    data = urllib2.urlopen(url)
-    
-    localFile = open(gpsFilePath, 'w')
-    localFile.write(data.read())
-    localFile.close()
 
     year = int(lastUpdate[0:4])
     month = int(lastUpdate[4:6])
@@ -27,12 +67,26 @@ def getNewGPSData(testerName, phoneNum, lastUpdate, gpsFilePath):
     seconds = int(lastUpdate[13:15])
     endTime = 1000 * int(datetime.datetime(year, month, day, hours, minutes, seconds).strftime('%s'))
     startTime = endTime - (24 * 60 * 60 * 1000) 
+    
+    endPeriod = str(year) + str(month).zfill(2) + str(getWeek(year, month, day))
+    year, month, day = previousDay(year, month, day)
+    startPeriod = str(year) + str(month).zfill(2) + str(getWeek(year, month, day))
+    
+    url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + startPeriod
+    data = urllib2.urlopen(url)
+    localFile = open(gpsFilePath, 'w+')
+    localFile.write(data.read())   
+    if startPeriod != endPeriod:
+        url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + endPeriod
+        data = urllib2.urlopen(url)
+        localFile.write(data.read())
+    localFile.close()
 
     gpsData = []
     with open(gpsFilePath, 'rU') as csvfile:
-        for row in csv.reader(csvfile, delimiter = '\t'):
+        for row in csv.reader(csvfile, delimiter = ','):
             try:
-                if int(row[1]) >= startTime and int(row[1]) <= endTime:
+                if row[0] == phoneNum and int(row[1]) >= startTime and int(row[1]) <= endTime:
                     tList = []
                     for element in row:
                         try:
@@ -42,8 +96,14 @@ def getNewGPSData(testerName, phoneNum, lastUpdate, gpsFilePath):
                     gpsData.append(tList)
             except:
                 pass            
-    gpsData = sorted(gpsData, key = lambda x: int(x[1]))
+
     remove(gpsFilePath)
+    gpsData, prevEpochTime, newGpsData = sorted(gpsData, key = lambda x: int(x[1])), 0, []
+    for gpsPoint in gpsData:
+        if int(gpsPoint[1]) != prevEpochTime:
+            newGpsData.append(gpsPoint)
+        prevEpochTime = int(gpsPoint[1])
+    gpsData = newGpsData    
     return gpsData
 
 
@@ -445,16 +505,20 @@ def generateEvents(testers, gmtConversion):
     return data
 
 
-# Tester personal details, change as appropriate
-testers = [{'name': 'Andrew', 'ph': '5107259365'},
-           {'name': 'Caroline', 'ph': '5107250774'},
-           {'name': 'Rory', 'ph': '5107250619'},
-           {'name': 'Sreeta', 'ph': '5107250786'},
-           {'name': 'Ziheng', 'ph': '5107250744'},
-           {'name': 'Vij', 'ph': '5107250740'}]
+# Entry point to script
 
-# Difference in hours between local time and UTC time, remember to change for daylight savings    
-gmtConversion = datetime.datetime.now(pytz.timezone('America/Los_Angeles')).strftime('%z')    
+if __name__ == "__main__":
 
-# Generate list of events
-data = generateEvents(testers, gmtConversion)
+    # Tester personal details, change as appropriate
+    testers = [{'name': 'Andrew', 'ph': '5107259365'},
+               {'name': 'Caroline', 'ph': '5107250774'},
+               {'name': 'Rory', 'ph': '5107250619'},
+               {'name': 'Sreeta', 'ph': '5107250786'},
+               {'name': 'Ziheng', 'ph': '5107250744'},
+               {'name': 'Vij', 'ph': '5107250740'}]
+
+    # Difference in hours between local time and UTC time
+    gmtConversion = datetime.datetime.now(pytz.timezone('America/Los_Angeles')).strftime('%z')    
+    
+    # Generate list of events
+    data = generateEvents(testers, gmtConversion)
