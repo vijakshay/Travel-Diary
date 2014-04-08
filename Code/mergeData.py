@@ -1,4 +1,6 @@
 import csv
+import time
+import datetime
 
 
 # Procedure that takes as input a string deonting the date, difference between local time zone and UTC time, 
@@ -63,10 +65,10 @@ def mergeRecord(gpsData, groundData):
 
 def mergeData(gpsData, groundData):
 
-    i, lastEvent = 0, groundData[-1][3:]
+    i, lastEvent = 0, groundData[-1][5:]
     while groundData:
-        while gpsData[i][9] != groundData[0][1]:
-            for element in groundData[0][3:]:
+        while float(gpsData[i][1]) != int(groundData[0][3]):
+            for element in groundData[0][5:]:
                 gpsData[i].append(element)
             i += 1
         groundData = groundData[1:]
@@ -125,7 +127,7 @@ if __name__ == "__main__":
 
     # Details of data to be merged    
     testerName = 'Vij'        # Should be the same as that listed in testers
-    date = '03122014'         # MMDDYYYY format of day for which you wish to merge data
+    date = '04072014'         # MMDDYYYY format of day for which you wish to merge data
     
     # Call to merge raw data with ground truth
     mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)
