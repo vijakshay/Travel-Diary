@@ -34,6 +34,7 @@ def getGroundData(groundFilePath):
                 groundData.append(tList)
     return groundData
 
+
 # Procedure that takes as input two lists, one containing GPS data and one containing ground truth, and combines them
 # into a single list
 
@@ -74,51 +75,57 @@ def mergeData(gpsData, groundData):
     return gpsData
 
 
-# A script that combines the GPS data with the ground truth in a tab-delimited text file that can
+# Method that combines the GPS data with the ground truth in a tab-delimited text file that can
 # subsequently be used to train inference algorithms. The GPS data file must be saved manually
 # as a tab-delimited text file on the local hard drive. The ODK file containing ground truth must
 # be exported manually as a csv and saved to the local hard drive as well.
 
-# Personal details, change as appropriate
+def mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date):
 
-testers = [{'name': 'Andrew', 'ph': '5107259365'}, 
-           {'name': 'Caroline', 'ph': '5107250774'},
-           {'name': 'Rory', 'ph': '5107250619'},
-           {'name': 'Sreeta', 'ph': '5107250786'},
-           {'name': 'Vij', 'ph': '5107250740'},
-           {'name': 'Ziheng', 'ph': '5107250744'}]
+    for tester in testers:
+        if tester['name'] == testerName:
+            fileName = tester['ph'] + '_' + testerName + '_' + date
+    
+    gpsFile = gpsFilePath + fileName + '.txt'
+    groundFile = groundFilePath + fileName + '.csv'
+    
+    # Directory where the final data file will be saved, no need to change this
+    mergedFile = filePath + 'Travel-Diary/Data/Google Play API/' + fileName + '.txt'
+    
+    gpsData = getGPSData(gpsFile)
+    groundData = getGroundData(groundFile)
+    data = mergeData(gpsData, groundData)
+    
+    with open(mergedFile, 'wb') as csvfile:
+        fileWriter = csv.writer(csvfile, delimiter = '\t')
+        for row in data:
+            fileWriter.writerow(row)
+ 
+       
+# Entry point to script
 
-# Details of data to be merged
+if __name__ == "__main__":
 
-testerName = 'Vij'        # Should be the same as that listed in the ODK form
-date = '03122014'            # MMDDYYYY format of day for which you wish to extract data
+    # Personal details, change as appropriate    
+    testers = [{'name': 'Andrew', 'ph': '5107259365'}, 
+               {'name': 'Caroline', 'ph': '5107250774'},
+               {'name': 'Rory', 'ph': '5107250619'},
+               {'name': 'Sreeta', 'ph': '5107250786'},
+               {'name': 'Vij', 'ph': '5107250740'},
+               {'name': 'Ziheng', 'ph': '5107250744'}]
+    
+    # Base directory where you clone the repository, change as appropriate
+    filePath = '/Users/vij/Work/Current Research/'
+    
+    # Directory where you saved the file with GPS traces, change as appropriate
+    gpsFilePath = filePath + 'Travel-Diary/Data/Raw Data/' 
+    
+    # Directory where you've saved the corrected ground truth, change as appropriate
+    groundFilePath = filePath + 'Travel-Diary/Data/Corrected Truth/' 
 
-# Base directory where you clone the repository, change as appropriate
-filePath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/'
-
-# Directory where you saved the file with GPS traces, change as appropriate
-gpsFilePath = filePath + 'Travel-Diary/Data/Raw Data/' 
-
-# Directory where you've saved the corrected ground truth, change as appropriate
-groundFilePath = filePath + 'Travel-Diary/Data/Corrected Truth/' 
-
-# DON'T CHANGE ANYTHING BELOW THIS!
-
-for tester in testers:
-    if tester['name'] == testerName:
-        fileName = tester['ph'] + '_' + testerName + '_' + date
-
-gpsFile = gpsFilePath + fileName + '.txt'
-groundFile = groundFilePath + fileName + '.csv'
-
-# Directory where the final data file will be saved, no need to change this
-mergedFile = filePath + 'Travel-Diary/Data/Google Play API/' + fileName + '.txt'
-
-gpsData = getGPSData(gpsFile)
-groundData = getGroundData(groundFile)
-data = mergeData(gpsData, groundData)
-
-with open(mergedFile, 'wb') as csvfile:
-    fileWriter = csv.writer(csvfile, delimiter = '\t')
-    for row in data:
-        fileWriter.writerow(row)
+    # Details of data to be merged    
+    testerName = 'Vij'        # Should be the same as that listed in testers
+    date = '03122014'         # MMDDYYYY format of day for which you wish to merge data
+    
+    # Call to merge raw data with ground truth
+    mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)
