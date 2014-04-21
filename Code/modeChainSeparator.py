@@ -70,6 +70,7 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
                 or gpsTraces[end + 1][4] > gpsAccuracyThreshold
                 or gpsTraces[end + 2][4] > gpsAccuracyThreshold):
             end += 1
+        print start, end
         if start == end:
             features = determineFeatures(gpsTraces, i)            
             if features['Acceleration'] <= 945:
@@ -90,8 +91,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             while i < end:
                 walkDummy[i] = dummy
                 i += 1
-    #print walkDummy 
-    #print
+    print walkDummy 
+    print
     
     # Step 2: Identify walk and non-walk segments as consecutive walk or non-walk points 
     modeChains = []
@@ -103,8 +104,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             beginSegment = currentPoint
         currentPoint += 1
     modeChains.append([beginSegment, currentPoint, int(walkDummy[beginSegment] != 0)])
-    #print modeChains
-    #print
+    print modeChains
+    print
 
     # Step 3: If the time span of a segment is greater than minSegmentDuration milliseconds, label it 
     # as certain. If it is less than minSegmentDuration milliseconds, and its backward segment is certain,
@@ -121,8 +122,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
             modeChains[i].append(0)
             newModeChains.append(modeChains[i])
     modeChains = newModeChains
-    #print modeChains
-    #print
+    print modeChains
+    print
 
     # Step 4: Merge consecutive uncertain segments into a single certain segment. Calculate average
     # speed over segment and compare it against maxWalkSpeed to determine whether walk or non-walk.
@@ -146,8 +147,8 @@ def inferModeChain(gpsTraces, trip, maxWalkSpeed, maxWalkAcceleration,
         newModeChains.append(modeChains[i][:-1])
         i += 1
     modeChains = newModeChains
-    #print modeChains
-    #print
+    print modeChains
+    print
         
     # Step 5: Merge consecutive walk segments and consecutive non-walk segments
     newModeChains = [modeChains[0]]
@@ -273,9 +274,11 @@ def modeChainSeparator(dirPath):
 # Entry point to script
 
 if __name__ == "__main__":
+    
+    reload(tripActivitySeparator)
 
     # Base directory where you clone the repository, change as appropriate
-    dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
+    dirPath = '/Users/vij/Work/Current Research/'
     
     # Folder within the repository containing the data files
     dirPath += 'Travel-Diary/Data/Temp/'

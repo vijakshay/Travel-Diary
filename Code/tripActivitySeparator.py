@@ -3,6 +3,7 @@ import math
 import numpy
 from os import listdir
 from os.path import isfile, join
+import sys
 
 
 # Procedure that takes as input a tab-delimited txt file, and stores the data as a list, 
@@ -119,7 +120,6 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         # Create a collection of successive points that lie within a circle of radius maxRadius meters, such that no
         # two consecutive points in space are separated by more than minSamplingRate milliseconds
         j = i + 1
-        print i, j
         points = [gpsTraces[i]]
         while (j < len(gpsTraces) and gpsTraces[j][4] < gpsAccuracyThreshold 
                 and gpsTraces[j][1] - gpsTraces[j-1][1] < minSamplingRate
@@ -136,7 +136,6 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
                 if calDistanceToPoint(gpsTraces[k], points) < maxRadius:
                     j = k + 1
 
-        print i, j
         # Check if the duration over which these points were collected exceeds minDuration milliseconds
         if gpsTraces[j-1][1] - gpsTraces[i][1] > minDuration:
             
@@ -154,7 +153,6 @@ def inferTripActivity(gpsTraces, minDuration, maxRadius, minSeparationDistance,
         
         if k == len(gpsTraces):
             break
-        print i, j, activities
         
     # Impute trips and identify holes in data
     numActivities, newActivities = len(activities), []
@@ -268,7 +266,7 @@ def tripActivitySeparator(dirPath):
 if __name__ == "__main__":
 
     # Base directory where you clone the repository, change as appropriate
-    dirPath = '/Users/biogeme/Desktop/Vij/Academics/Current Research/' 
+    dirPath = '/Users/vij/Work/Current Research/'
     
     # Folder within the repository containing the data files
     dirPath += 'Travel-Diary/Data/Temp/'
