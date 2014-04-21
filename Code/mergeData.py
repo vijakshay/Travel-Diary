@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     # Details of data to be merged    
     testerName = 'Vij'        # Should be the same as that listed in testers
-    date = '04072014'         # MMDDYYYY format of day for which you wish to merge data
+    date = '04092014'         # MMDDYYYY format of day for which you wish to merge data
     
     # Call to merge raw data with ground truth
     mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)
