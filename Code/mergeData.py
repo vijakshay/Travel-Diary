@@ -126,8 +126,8 @@ if __name__ == "__main__":
     groundFilePath = filePath + 'Travel-Diary/Data/Corrected Truth/' 
 
     # Details of data to be merged    
-    testerName = 'Vij'        # Should be the same as that listed in testers
-    date = '04072014'         # MMDDYYYY format of day for which you wish to merge data
+    testerName = 'Sreeta'        # Should be the same as that listed in testers
+    date = '04182014'         # MMDDYYYY format of day for which you wish to merge data
     
     # Call to merge raw data with ground truth
     mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)

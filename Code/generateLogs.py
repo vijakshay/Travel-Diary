@@ -100,18 +100,18 @@ def getNewGPSData(testerName, phoneNum, date, gmtConversion, gpsFilePath):
     month = int(date[0:2])
     day = int(date[2:4])
     year = int(date[4:8])
-    startPeriod = str(year) + str(month).zfill(2) + str(getWeek(year, month, day))
+    startPeriod = str(year) + str(month).zfill(2) + str(day).zfill(2) 
     year, month, day = nextDay(year, month, day)
-    endPeriod = str(year) + str(month).zfill(2) + str(getWeek(year, month, day))
-   
-    url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + startPeriod
+    endPeriod = str(year) + str(month).zfill(2) + str(day).zfill(2) 
+
+    url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + startPeriod + '&id=' + phoneNum + '&receivedate=on'   
     data = urllib2.urlopen(url)
     localFile = open(gpsFilePath, 'w')
     localFile.write(data.read())   
-    if startPeriod != endPeriod:
-        url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + endPeriod
-        data = urllib2.urlopen(url)
-        localFile.write(data.read())
+    
+    url = 'http://1-dot-traveltrackergroup.appspot.com/gaeandroid?query=1&period=' + endPeriod + '&id=' + phoneNum + '&receivedate=on'   
+    data = urllib2.urlopen(url)
+    localFile.write(data.read())
     localFile.close()
 
     startTime, endTime = epochTime(date, gmtConversion)   
@@ -483,10 +483,10 @@ def writeFile(data, filePath):
     for tester in data:
         fileName = filePath + tester['ph'] + '_' + tester['tester'] + '_' + tester['date'] + '.csv'
         csvout = csv.writer(open(fileName, "wb"))
-        csvout.writerow(("Start Time", "End Time", "Type", "Comments"))
+        csvout.writerow(("Start Time", "End Time", "Start Epoch", "End Epoch", "Type", "Comments"))
         try:
             for event in tester['Day Schedule']:
-                csvout.writerow((event['Start Time'], event['End Time'], event['Type']))
+                csvout.writerow((event['Start Time'], event['End Time'], event['Start Epoch'], event['End Epoch'], event['Type']))
         except:
             pass
     
@@ -521,7 +521,9 @@ def generateLogs(testers, date, gmtConversion, groundTruthPath, rawDataPath):
                             minSegmentDuration, minSegmentLength, gpsAccuracyThreshold)
                     for mode in modeChain:
                         event = {'Start Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[mode[0]][1]/1000)),
-                                'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[mode[1]][1]/1000))}
+                                 'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[mode[1]][1]/1000)),
+                                 'Start Epoch': gpsTraces[mode[0]][1],
+                                 'End Epoch': gpsTraces[mode[1]][1]}
                         if mode[-1] == 0:
                             event['Type'] = 'Non-walk trip'
                         else:
@@ -534,15 +536,19 @@ def generateLogs(testers, date, gmtConversion, groundTruthPath, rawDataPath):
                         or (activities and trips and not holes and activities[0][0] < trips[0][0])
                         or (activities and not trips and not holes)):
                     event = {'Start Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[activities[0][0]][1]/1000)),
-                            'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[activities[0][1]][1]/1000)),
-                            'Type': 'Activity'}
+                             'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[activities[0][1]][1]/1000)),
+                             'Start Epoch': gpsTraces[activities[0][0]][1],
+                             'End Epoch': gpsTraces[activities[0][1]][1],
+                             'Type': 'Activity'}
                     activities = activities[1:]
                     daySchedule.append(event)
                     event = {}
                 elif holes:
                     event = {'Start Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[holes[0][0]][1]/1000)),
-                            'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[holes[0][1]][1]/1000)),
-                            'Type': 'Hole'}
+                             'End Time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(gpsTraces[holes[0][1]][1]/1000)),
+                             'Start Epoch': gpsTraces[holes[0][0]][1],
+                             'End Epoch': gpsTraces[holes[0][1]][1],
+                             'Type': 'Hole'}
                     holes = holes[1:]
                     daySchedule.append(event)
                     event = {}
@@ -564,7 +570,7 @@ def generateLogs(testers, date, gmtConversion, groundTruthPath, rawDataPath):
 if __name__ == "__main__":
     
     # Day for which you wish to extract trips and activities
-    date = '04062014'        # MMDDYYYY format of day for which you wish to extract data
+    date = '04192014'        # MMDDYYYY format of day for which you wish to extract data
     gmtConversion = -7       # Difference in hours between local time and UTC time, remember to change for daylight savings
     gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
     
