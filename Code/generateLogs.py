@@ -570,7 +570,7 @@ def generateLogs(testers, date, gmtConversion, groundTruthPath, rawDataPath):
 if __name__ == "__main__":
     
     # Day for which you wish to extract trips and activities
-    date = '04192014'        # MMDDYYYY format of day for which you wish to extract data
+    date = '04212014'        # MMDDYYYY format of day for which you wish to extract data
     gmtConversion = -7       # Difference in hours between local time and UTC time, remember to change for daylight savings
     gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
     
@@ -585,7 +585,7 @@ if __name__ == "__main__":
     # File path where the GitHub repository is located
     filePath = '/Users/vij/Work/Current Research/'
     
-    # File path where you wish to store the ground truth
+    # File path where you wish to store the inferred truth
     groundTruthPath = filePath + 'Travel-Diary/Data/Inferred Truth/' 
     
     # File path where you wish to store the raw GPS data

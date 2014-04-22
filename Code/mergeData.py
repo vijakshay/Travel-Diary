@@ -13,8 +13,7 @@ def getGPSData(gpsFilePath):
         for row in csv.reader(csvfile, delimiter = '\t'):
             tList = []
             for element in row:
-                if element != '':
-                    tList.append(element)                
+                tList.append(element)                
             gpsData.append(tList)
     return gpsData
 
@@ -31,8 +30,7 @@ def getGroundData(groundFilePath):
             if row[0] != 'Start Time':
                 tList = []
                 for element in row:
-                    if element != '':
-                        tList.append(element)                
+                    tList.append(element)                
                 groundData.append(tList)
     return groundData
 
@@ -126,13 +124,8 @@ if __name__ == "__main__":
     groundFilePath = filePath + 'Travel-Diary/Data/Corrected Truth/' 
 
     # Details of data to be merged    
-<<<<<<< HEAD
     testerName = 'Vij'        # Should be the same as that listed in testers
-    date = '04092014'         # MMDDYYYY format of day for which you wish to merge data
-=======
-    testerName = 'Sreeta'        # Should be the same as that listed in testers
-    date = '04182014'         # MMDDYYYY format of day for which you wish to merge data
->>>>>>> FETCH_HEAD
+    date = '04172014'         # MMDDYYYY format of day for which you wish to merge data
     
     # Call to merge raw data with ground truth
     mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)
