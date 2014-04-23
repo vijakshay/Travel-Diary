@@ -1,7 +1,4 @@
 import csv
-import time
-import datetime
-
 
 # Procedure that takes as input a string deonting the date, difference between local time zone and UTC time, 
 # and the GPS file path name. Output is a list of lists containing GPS data for that day.
@@ -10,11 +7,8 @@ def getGPSData(gpsFilePath):
 
     gpsData = []
     with open(gpsFilePath, 'rb') as csvfile:
-        for row in csv.reader(csvfile, delimiter = '\t'):
-            tList = []
-            for element in row:
-                tList.append(element)                
-            gpsData.append(tList)
+        rows = csv.reader(csvfile, delimiter = '\t')
+        gpsData = [row for row in rows]
     return gpsData
 
 
@@ -26,36 +20,10 @@ def getGroundData(groundFilePath):
 
     groundData = []
     with open(groundFilePath, 'rU') as csvfile:
-        for row in csv.reader(csvfile, dialect=csv.excel_tab, delimiter = ','):
-            if row[0] != 'Start Time':
-                tList = []
-                for element in row:
-                    tList.append(element)                
-                groundData.append(tList)
+        rows = csv.reader(csvfile, dialect=csv.excel_tab, delimiter = ',')
+        header = rows.next()
+        groundData = [row for row in rows]
     return groundData
-
-
-# Procedure that takes as input two lists, one containing GPS data and one containing ground truth, and combines them
-# into a single list
-
-def mergeRecord(gpsData, groundData):
-
-    gpsData.append(groundData[5])
-    if groundData[5] == 'Trip':
-        gpsData.append(groundData[6])
-        if groundData[6] == 'Transit':
-            gpsData.append(groundData[7])
-            if groundData[7] == 'Other':
-                gpsData.append(groundData[8])
-        elif groundData[6] == 'Other':
-            gpsData.append(groundData[9])
-    elif groundData[5] == 'Activity':
-        gpsData.append(groundData[10])
-        if 'Other' in groundData[10]:
-            gpsData.append(groundData[11])
-        gpsData.append(groundData[12])
-
-    return gpsData
 
 
 # Procedure that takes as input the list of lists containing GPS data and the ground truth, and combines them
@@ -124,8 +92,8 @@ if __name__ == "__main__":
     groundFilePath = filePath + 'Travel-Diary/Data/Corrected Truth/' 
 
     # Details of data to be merged    
-    testerName = 'Vij'        # Should be the same as that listed in testers
-    date = '04172014'         # MMDDYYYY format of day for which you wish to merge data
+    testerName = 'Caroline'        # Should be the same as that listed in testers
+    date = '04222014'         # MMDDYYYY format of day for which you wish to merge data
     
     # Call to merge raw data with ground truth
     mergeDataFiles(testers, filePath, gpsFilePath, groundFilePath, testerName, date)

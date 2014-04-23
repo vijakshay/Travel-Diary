@@ -570,7 +570,7 @@ def generateLogs(testers, date, gmtConversion, groundTruthPath, rawDataPath):
 if __name__ == "__main__":
     
     # Day for which you wish to extract trips and activities
-    date = '04212014'        # MMDDYYYY format of day for which you wish to extract data
+    date = '04222014'        # MMDDYYYY format of day for which you wish to extract data
     gmtConversion = -7       # Difference in hours between local time and UTC time, remember to change for daylight savings
     gmtConversion -= 3       # Adjusted to allow the day to begin at 3 AM
     
