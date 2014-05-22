@@ -1,0 +1,175 @@
+{
+	"type": "object",
+	"properties": {
+		"phNum": {
+			"type": "number",
+			"description": "User phone number"
+			"required": true
+		},
+		"userName": {
+			"type": "string",
+			"description": "User name"
+		},
+		"epochTime": {
+			"type": "number",
+			"description": "Epoch time in milliseconds"
+			"required": true
+		},
+		"movesTime": {
+			"type": "string",
+			"description": "ISO 8601 local date and time with time zone information, e.g. 20140212T183022-0800"
+		},
+		"gpsReading": {
+			"type": "object",
+			"description": "Location data from Google's location services API",
+			"required": true
+			"properties": {
+				"location": {
+					"description": "GPS point coordinates",
+					"required": true
+					"properties": {
+						"type": {
+							"enum": ["Point"],
+							"required": true
+						},
+						"coordinates": {
+							"description": "A single position",
+            				"type": "array",
+            				"minItems": 2,
+            				"maxItems": 2,
+            				"required": true,
+            				"items": { "type": "number" },
+                			"additionalItems": false
+						}
+					}
+				},
+				"gpsAccuracy": {
+					"type": "number",
+					"description": "GPS accuracy in meters"
+				}
+			}
+		},
+		"batteryLevel": {
+			"type": "number",
+			"description": "Battery level"
+		},
+		"accelerometerReading": {
+			"type": "object",
+			"description": "Accelerometer reading",
+			"properties": {
+				"xAxis": {
+					"type": "number",
+					"description": "Accelerometer reading along X-axis"
+				},
+				"yAxis": {
+					"type": "number",
+					"description": "Accelerometer reading along Y-axis"
+				},
+				"zAxis": {
+					"type": "number",
+					"description": "Accelerometer reading along Z-axis"
+				},
+				"vector": {
+					"type": "number",
+					"description": "Accelerometer reading vector value"
+				}
+		},
+		"googleInference": {
+			"type": "object",
+			"description": "Google inference",
+			"properties": {
+				"inVehicle": {
+					"type": "number",
+					"description": "Probability in-vehicle"
+				},
+				"bike": {
+					"type": "number",
+					"description": "Probability on bike"
+				},
+				"walk": {
+					"type": "number",
+					"description": "Probability walking"
+				},
+				"still": {
+					"type": "number",
+					"description": "Probability still"
+				},
+				"unknown": {
+					"type": "number",
+					"description": "Probability unknown"
+				},
+				"tilting": {
+					"type": "number",
+					"description": "Probability tilting"
+				}
+		},
+		"screenOn": {
+			"type": "number",
+			"description": "Binary variable equal to one if screen is on, zero otherwise",
+			"enum": [0, 1] 
+		},
+		"wiFiNetwork": {
+			"type": "string",
+			"description": "Name of wifi network, if available"
+		},
+		"receivedTime": {
+			"type": "number",
+			"description": "Epoch time in milliseconds when record data received by server"
+		},
+		"groundTruth": {
+			"type": "object",
+			"description": "Ground truth",
+			"properties": {
+				"label": {
+					"type": "string",
+					"description": "Label denoting trip, activity or hole in data",
+					"enum": ["Trip", 
+							 "Activity", 
+							 "Hole"]
+				},
+				"mode": {
+					"type": "string",
+					"description": "Travel mode",
+					"enum": ["Walk", 
+							 "Bike", 
+							 "Car", 
+							 "Transit", 
+							 "Run"]
+				},
+				"transitAgency": {
+					"type": "string",
+					"description": "Transit agency name",
+					"enum": ["AC_Transit", 
+							 "BART", 
+							 "Bear_Transit", 
+							 "MUNI"]
+				},
+				"purpose": {
+					"type": "array",					
+					"description": "Activity purpose(s)",
+					"items": {
+						"type": "string",
+						"enum": ["Work", 
+								 "Meals", 
+								 "Recreation", 
+								 "Shopping", 
+								 "Household_chores", 
+								 "School", 
+								 "Sleep", 
+								 "Waiting", 
+								 "Social", 
+								 "Personal_services", 
+								 "Medical", 
+								 "Relaxing", 
+								 "Other"]
+						}
+					}
+				},
+				"exactLocation": {
+					"type": "string",
+					"description": "Specific name of place, e.g. McLaughlin Hall"
+				}
+		}		
+	}
+	"additionalProperties": false
+}
